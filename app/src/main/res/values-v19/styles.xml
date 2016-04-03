@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="NoActionBarThem" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="colorPrimary">@color/main</item>
+        <item name="colorPrimaryDark">@color/main</item>
+        <item name="colorAccent">@color/secondary</item>
+    </style>
+</resources>

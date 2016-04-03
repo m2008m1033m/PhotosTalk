@@ -1,0 +1,77 @@
+<FrameLayout
+    android:id="@+id/recorder"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#AA000000"
+    android:padding="65dp"
+    android:visibility="gone">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:alpha="0.8"
+        android:background="#222"
+        >
+
+        <LinearLayout
+            android:id="@+id/record_indicator_wrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="40dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/record_flag"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:background="@drawable/circle_red"
+                />
+
+            <TextView
+                android:id="@+id/record_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="00:00"
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                />
+        </LinearLayout>
+
+        <com.photostalk.customViews.AudioVisualizer
+            android:id="@+id/audio_visualizer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/record_button"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/mic"
+            app:backgroundTint="@color/main"
+            app:borderWidth="0dp"
+            app:elevation="6dp"
+            app:fabSize="normal"/>
+
+        <ImageView
+            android:id="@+id/cancel_button"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="20dp"
+            android:src="@drawable/cancel"
+            android:visibility="gone"
+            />
+
+
+    </FrameLayout>
+
+</FrameLayout>

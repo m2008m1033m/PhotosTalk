@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="photo_thumbnail_edge_length">70dp</dimen>
+    <dimen name="photo_thumbnail_padding">3dp</dimen>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/edit"
+        android:title="@string/Edit"
+        />
+    <item
+        android:id="@+id/change_password"
+        android:title="@string/change_password"
+        />
+
+    <item
+        android:id="@+id/report"
+        android:title="@string/report"
+        />
+    <item
+        android:id="@+id/block"
+        android:title="@string/block"
+        />
+
+    <item
+        android:id="@+id/blocked_users"
+        android:title="@string/blocked_users"
+        />
+
+    <item
+        android:id="@+id/logout"
+        android:title="@string/logout"
+        />
+
+</menu>

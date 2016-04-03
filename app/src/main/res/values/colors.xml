@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="main">#2c98f0</color>
+    <color name="secondary">#2278d0</color>
+    <color name="light">#d8e9f4</color>
+
+    <color name="black">#00050e</color>
+
+    <color name="white">#ffffff</color>
+    <color name="grey_light">#e6e6e6</color>
+    <color name="grey_dark">#878787</color>
+    <color name="separator">#b2b2b2</color>
+
+    <color name="red">#B71C1C</color>
+    <color name="red_light">#FFCDD2</color>
+
+    <color name="facebook_blue">#4e69a2</color>
+    <color name="facebook_blue_dark">#3b5998</color>
+
+    <color name="twitter_blue">#1cb3f2</color>
+    <color name="twitter_blue_dark">#1da1f2</color>
+
+    <color name="text_color">#2f2f2f</color>
+
+    <color name="color_filter_1">#232323</color>
+    <color name="color_filter_2">#9d161b</color>
+    <color name="color_filter_3">#654b30</color>
+    <color name="color_filter_4">#829638</color>
+    <color name="color_filter_5">#303975</color>
+    <color name="color_filter_6">#6c3970</color>
+    <color name="color_filter_7">#a44a5f</color>
+
+    <array name="filter_colors">
+        <item>@color/color_filter_1</item>
+        <item>@color/color_filter_2</item>
+        <item>@color/color_filter_3</item>
+        <item>@color/color_filter_4</item>
+        <item>@color/color_filter_5</item>
+        <item>@color/color_filter_6</item>
+        <item>@color/color_filter_7</item>
+    </array>
+</resources>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    android:id="@+id/wrapper"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000"
+    android:orientation="vertical">
+
+
+    <com.photostalk.customViews.EffectsSlider
+        android:id="@+id/effect_slider"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/photo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            />
+    </com.photostalk.customViews.EffectsSlider>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/black_transparent_vertical_gradient"
+        android:gravity="right">
+
+        <ImageView
+            android:id="@+id/upload_button"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:clickable="true"
+            android:src="@drawable/next"
+            />
+    </LinearLayout>
+
+
+    <include layout="@layout/record_dialog_layout"/>
+
+    <EditText
+        android:id="@+id/hash_tag_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#AA000000"
+        android:ellipsize="end"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:minHeight="40dp"
+        android:paddingEnd="70dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="70dp"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:visibility="gone"/>
+
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:id="@+id/menu_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        fab:fab_addButtonColorNormal="@color/main"
+        fab:fab_addButtonColorPressed="@color/secondary"
+        fab:fab_addButtonSize="normal"
+        fab:fab_labelsPosition="right">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/filter_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_colorNormal="@color/white"
+            fab:fab_icon="@drawable/filter_blue"
+            fab:fab_size="mini"
+            />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/hash_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_colorNormal="@color/white"
+            fab:fab_icon="@drawable/hash_blue"
+            fab:fab_size="mini"
+            />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/mic_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_colorNormal="@color/white"
+            fab:fab_icon="@drawable/mic_blue"
+            fab:fab_size="mini"
+            />
+
+
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+
+
+</android.support.design.widget.CoordinatorLayout>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group
+        android:id="@+id/group1"
+        android:checkableBehavior="none">
+
+        <item
+            android:id="@+id/my_profile"
+            android:checked="false"
+            android:icon="@mipmap/ic_account_box_grey600_24dp"
+            android:title="@string/my_profile"/>
+
+        <item
+            android:id="@+id/notifications"
+            android:checked="false"
+            android:icon="@mipmap/ic_notifications_grey600_24dp"
+            android:title="@string/notifications"
+            app:actionLayout="@layout/nav_drawer_counter"/>
+    </group>
+
+    <group
+        android:id="@+id/group2"
+        android:checkableBehavior="none">
+
+        <item
+            android:id="@+id/settings"
+            android:checked="false"
+            android:icon="@mipmap/ic_settings_grey600_24dp"
+            android:title="@string/settings"/>
+
+        <item
+            android:id="@+id/logout"
+            android:checked="false"
+            android:icon="@mipmap/ic_exit_to_app_grey600_24dp"
+            android:title="@string/logout"/>
+    </group>
+</menu>

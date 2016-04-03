@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    android:id="@+id/wrapper"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="87dp"
+    android:background="@color/white">
+
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="71dp"
+        android:background="@color/white"
+        android:paddingEnd="15dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingStart="15dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.photostalk.customViews.RoundImageView
+                android:id="@+id/photo"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:clickable="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/no_avatar"/>
+
+            <TextView
+                android:id="@+id/full_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp"
+                android:ellipsize="middle"
+                android:lines="1"
+                android:singleLine="true"
+                android:text="Mohammed Nasser Commented"
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                />
+        </LinearLayout>
+
+
+        <FrameLayout
+            android:id="@+id/play_stop_button"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/circle_secondary"
+            android:clickable="true">
+
+            <ImageView
+                android:id="@+id/button_icon"
+                android:layout_width="25dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/play"
+                />
+
+            <ProgressBar
+                android:id="@+id/progress"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_gravity="center"
+                />
+
+        </FrameLayout>
+    </FrameLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="71dp"
+        android:background="#d3e6f3"
+        android:visibility="visible"/>
+
+
+    <android.support.v7.widget.AppCompatSeekBar
+        android:id="@+id/seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:layout_marginTop="55dp"
+        android:padding="0dp"
+        android:visibility="visible"/>
+
+</FrameLayout>
