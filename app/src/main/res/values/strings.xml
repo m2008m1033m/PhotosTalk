@@ -138,6 +138,7 @@
     <string name="live">Live</string>
     <string name="s_commented">%s Commented</string>
     <string name="play_stop_audio">Play/Stop Audio</string>
+    <string name="post_to_group">Post to Group</string>
 
     <plurals name="d_people_commented_on_this">
         <item quantity="one">%d person commented on this.</item>

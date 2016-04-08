@@ -477,6 +477,7 @@ public class CameraActivity extends AppCompatActivity {
         if (photoPath != null) {
             Intent i = new Intent(this, RecordTagFilterActivity.class);
             i.putExtra(RecordTagFilterActivity.PHOTO_PATH, photoPath);
+            i.putExtra(RecordTagFilterActivity.IS_LIVE, true);
             startActivity(i);
         }
     }

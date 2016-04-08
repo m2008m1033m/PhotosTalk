@@ -178,10 +178,7 @@ public class PhotoActivity extends AppCompatActivity {
             Communicator.getInstance().cancelAll();
             mProgressDialog.dismiss();
             mProgressDialog = null;
-        } else if (mRecorderContainer != null && mRecorderContainer.getVisibility() == View.VISIBLE) {
-            if (mRecorder.getState() == Recorder.RECORDING)
-                mRecorder.cancel();
-            mRecorderContainer.setVisibility(View.GONE);
+        } else if (stopRecorder()) {
             return;
         } else if (mIsHeaderPlaying || mPlayingComment != -1) {
             playHeader(false);
@@ -191,6 +188,14 @@ public class PhotoActivity extends AppCompatActivity {
             return;
         }
         super.onBackPressed();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        playComment(-1);
+        playHeader(false);
+        stopRecorder();
     }
 
     @Override
@@ -561,6 +566,17 @@ public class PhotoActivity extends AppCompatActivity {
 
         // update which comment is playing now
         mPlayingComment = position;
+    }
+
+    private boolean stopRecorder() {
+        if (mRecorderContainer != null && mRecorderContainer.getVisibility() == View.VISIBLE) {
+            if (mRecorder.getState() == Recorder.RECORDING)
+                mRecorder.cancel();
+            mRecorderContainer.setVisibility(View.GONE);
+            return true;
+        }
+
+        return false;
     }
 
     private void changeHeaderUi(boolean play, boolean loading) {

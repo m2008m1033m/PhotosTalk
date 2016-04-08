@@ -347,12 +347,12 @@ public class RecordTagFilterActivity extends AppCompatActivity {
             String description = mHashTagEditText.getText().toString().trim();
             boolean isLive = getIntent().getBooleanExtra(RecordTagFilterActivity.IS_LIVE, false);
 
-            Intent i = new Intent(this, PreviewPhotoActivity.class);
-            i.putExtra(PreviewPhotoActivity.PHOTO_PATH, fileName);
-            i.putExtra(PreviewPhotoActivity.AUDIO_PATH, audioName);
-            i.putExtra(PreviewPhotoActivity.DURATION, duration);
-            i.putExtra(PreviewPhotoActivity.DESCRIPTION, description);
-            i.putExtra(PreviewPhotoActivity.IS_LIVE, isLive);
+            Intent i = new Intent(this, PreviewPhotoActivityNew.class);
+            i.putExtra(PreviewPhotoActivityNew.PHOTO_PATH, fileName);
+            i.putExtra(PreviewPhotoActivityNew.AUDIO_PATH, audioName);
+            i.putExtra(PreviewPhotoActivityNew.DURATION, duration);
+            i.putExtra(PreviewPhotoActivityNew.DESCRIPTION, description);
+            i.putExtra(PreviewPhotoActivityNew.IS_LIVE, isLive);
 
             startActivity(i);
 
