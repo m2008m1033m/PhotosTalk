@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/comments_container"
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/white"
+              android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/comments_layout_comments_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="13dp"
+        android:text="@string/zero_people_commented_on_this"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/separator"
+        />
+
+    <fragment
+        android:id="@+id/refresh_recycler_view_fragment"
+        android:name="com.photostalk.fragments.RefreshRecyclerViewFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="50dp"/>
+
+
+    <ImageButton
+        android:id="@+id/mic_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="-50dp"
+        android:adjustViewBounds="true"
+        android:background="@drawable/round_white_button"
+        android:clickable="true"
+        android:contentDescription="@string/record_button"
+        android:maxHeight="35dp"
+        android:padding="10dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/mic_blue"/>
+
+
+</LinearLayout>

@@ -14,7 +14,6 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -313,7 +312,8 @@ public class RecordTagFilterActivity extends AppCompatActivity {
     }
 
     private String savePhoto() throws IOException {
-        String fileName = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "PhotosTalk" + File.separator + "tmp" + File.separator + "final.jpg";
+        //String fileName = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "PhotosTalk" + File.separator + "tmp" + File.separator + "final.jpg";
+        String fileName = getCacheDir() + File.separator + "PhotosTalk" + File.separator + "tmp" + File.separator + "final.jpg";
         File file = new File(fileName);
         if (file.exists()) file.delete();
         Bitmap source = ((BitmapDrawable) mPhoto.getDrawable()).getBitmap();

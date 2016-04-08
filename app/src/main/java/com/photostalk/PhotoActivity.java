@@ -8,27 +8,36 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSeekBar;
-import android.support.v7.widget.LinearLayoutManager;
-import android.view.MenuInflater;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.photostalk.adapters.PhotosActivityAdapter;
+import com.davemorrissey.labs.subscaleview.ImageSource;
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
+import com.photostalk.adapters.PhotoActivityAdapterNew;
 import com.photostalk.core.Communicator;
-import com.photostalk.core.User;
 import com.photostalk.customViews.AudioVisualizer;
 import com.photostalk.fragments.RefreshRecyclerViewFragment;
 import com.photostalk.models.Comment;
@@ -41,12 +50,14 @@ import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
 import com.photostalk.utils.Player;
 import com.photostalk.utils.Recorder;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-/**
- * Created by mohammed on 3/4/16.
- */
 public class PhotoActivity extends AppCompatActivity {
 
     public final static String PHOTO_ID = "photo_id";
@@ -56,6 +67,20 @@ public class PhotoActivity extends AppCompatActivity {
     private final static int COMMENT = 1;
     private final static int NONE = 2;
 
+    private SlidingUpPanelLayout mSlidingUpPanelLayout;
+    private LinearLayout mDetailsContainer;
+    private Toolbar mToolbar;
+    private TextView mShowCommentsButton;
+    private TextView mLikesCount;
+    private TextView mLikeButton;
+    private TextView mRecordComment;
+    private TextView mShareButton;
+    private TextView mLiveTextView;
+    private TextView mHashTagsTextView;
+    private SubsamplingScaleImageView mPhotoImageView;
+    private ImageView mPlayStopButton;
+    private ImageButton mMicButton;
+    private ProgressBar mProgressBar;
     private FrameLayout mRecorderContainer;
     private AudioVisualizer mAudioVisualizer;
     private TextView mRecordDuration;
@@ -64,25 +89,23 @@ public class PhotoActivity extends AppCompatActivity {
     private ImageView mCancelRecordingButton;
     private FloatingActionButton mRecordButton;
     private RefreshRecyclerViewFragment mRefreshRecyclerViewFragment;
+    private TextView mCommentsLayoutCommentCount;
     private AlertDialog mProgressDialog;
-    private PopupMenu mPopupMenu;
 
-    private PhotosActivityAdapter mAdapter;
-    private PhotosActivityAdapter.OnActionListener mOnActionListener;
+    private PhotoActivityAdapterNew mAdapter;
+    private PhotoActivityAdapterNew.OnActionListener mOnActionListener;
 
     private BroadcastReceiver mBroadcastReceiver;
-
     private Recorder mRecorder;
-
     private boolean mArePermissionsGranted = false;
 
-    /**
-     * for the player
-     */
     private Player mPlayer;
     private Photo mPhoto;
     private int mPlayingComment = -1;
     private boolean mIsHeaderPlaying = false;
+    private boolean mIsOverlayShown = true;
+    private boolean mOverlayAnimating = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,12 +114,62 @@ public class PhotoActivity extends AppCompatActivity {
         /**
          * load the state of the audio permission
          */
-        mArePermissionsGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        mArePermissionsGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
 
-        setContentView(R.layout.photos_activity);
+        setContentView(R.layout.photo_activity);
+
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+        ActionBar ab = getSupportActionBar();
+        if (ab != null) {
+            ab.setHomeButtonEnabled(true);
+            ab.setDisplayHomeAsUpEnabled(true);
+            ab.setHomeAsUpIndicator(R.mipmap.back);
+        }
+        setTitle("");
+
         setupBroadcastReceiver();
         init();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.photo_actions, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                return true;
+            case R.id.delete:
+                playHeader(false);
+                PhotosApi.delete(mPhoto.getId(), new ApiListeners.OnActionExecutedListener() {
+                    @Override
+                    public void onExecuted(Result result) {
+                        if (result.isSucceeded()) {
+                            Broadcasting.sendPhotoDelete(PhotoActivity.this, mPhoto.getId());
+                            finish();
+                        } else
+                            Notifications.showSnackbar(PhotoActivity.this, result.getMessages().get(0));
+                    }
+                });
+                return true;
+            case R.id.report:
+                PhotosApi.report(mPhoto.getId(), new ApiListeners.OnActionExecutedListener() {
+                    @Override
+                    public void onExecuted(Result result) {
+                        if (result.isSucceeded())
+                            Notifications.showSnackbar(PhotoActivity.this, getString(R.string.a_report_has_been_sent_successfully));
+                        else
+                            Notifications.showSnackbar(PhotoActivity.this, result.getMessages().get(0));
+                    }
+                });
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -113,6 +186,9 @@ public class PhotoActivity extends AppCompatActivity {
         } else if (mIsHeaderPlaying || mPlayingComment != -1) {
             playHeader(false);
             playComment(-1);
+        } else if (areCommentsShown()) {
+            mSlidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            return;
         }
         super.onBackPressed();
     }
@@ -137,9 +213,6 @@ public class PhotoActivity extends AppCompatActivity {
                         finish();
                 } else if (intent.getAction().equals(Broadcasting.LOGOUT)) {
                     finish();
-                } else if (intent.getAction().equals(Broadcasting.PROFILE_UPDATED)) {
-                    if (!User.getInstance().getId().equals(mPhoto.getUser().getId())) return;
-                    mAdapter.updateUserPhoto();
                 }
             }
         };
@@ -148,7 +221,6 @@ public class PhotoActivity extends AppCompatActivity {
         IntentFilter intentFilter = new IntentFilter(Broadcasting.PHOTO_DELETE);
         intentFilter.addAction(Broadcasting.STORY_DELETE);
         intentFilter.addAction(Broadcasting.LOGOUT);
-        intentFilter.addAction(Broadcasting.PROFILE_UPDATED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -159,7 +231,21 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     private void initReferences() {
+        mSlidingUpPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mDetailsContainer = (LinearLayout) findViewById(R.id.details_container);
+        mShowCommentsButton = ((TextView) findViewById(R.id.comments_number_text_view));
+        mLikeButton = ((TextView) findViewById(R.id.like_button));
+        mLikesCount = ((TextView) findViewById(R.id.likes_number_text_view));
+        mShareButton = ((TextView) findViewById(R.id.share_button));
+        mLiveTextView = ((TextView) findViewById(R.id.is_live_text_view));
+        mHashTagsTextView = ((TextView) findViewById(R.id.hash_tags_text_view));
+        mPhotoImageView = ((SubsamplingScaleImageView) findViewById(R.id.photo));
+        mPlayStopButton = ((ImageView) findViewById(R.id.play_stop_button));
+        mMicButton = ((ImageButton) findViewById(R.id.mic_button));
+        mProgressBar = ((ProgressBar) findViewById(R.id.progress));
+        mRecordComment = ((TextView) findViewById(R.id.record_comment));
         mRefreshRecyclerViewFragment = ((RefreshRecyclerViewFragment) getSupportFragmentManager().findFragmentById(R.id.refresh_recycler_view_fragment));
+        mCommentsLayoutCommentCount = ((TextView) findViewById(R.id.comments_layout_comments_number));
         mRecorderContainer = ((FrameLayout) findViewById(R.id.recorder));
         mAudioVisualizer = ((AudioVisualizer) findViewById(R.id.audio_visualizer));
         mRecordDuration = ((TextView) findViewById(R.id.record_duration));
@@ -170,18 +256,101 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     private void initEvents() {
+
+        mPhotoImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mOverlayAnimating) return;
+                mOverlayAnimating = true;
+
+                Animation animation = new AlphaAnimation(mIsOverlayShown ? 1.0f : 0.0f, mIsOverlayShown ? 0.0f : 1.0f);
+                mToolbar.setVisibility(View.VISIBLE);
+                mDetailsContainer.setVisibility(View.VISIBLE);
+                animation.setDuration(150);
+                animation.setFillAfter(true);
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        mOverlayAnimating = false;
+                        mIsOverlayShown = !mIsOverlayShown;
+                        if (mIsOverlayShown) return;
+                        mToolbar.setVisibility(View.GONE);
+                        mDetailsContainer.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                mToolbar.startAnimation(animation);
+                mDetailsContainer.startAnimation(animation);
+            }
+        });
+
+        mMicButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showRecordDialog();
+            }
+        });
+
+        mPlayStopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playHeader(!mIsHeaderPlaying);
+            }
+        });
+
+        mLikeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PhotosApi.like(mPhoto.getId(), !mPhoto.isLiked(), new ApiListeners.OnActionExecutedListener() {
+                    @Override
+                    public void onExecuted(Result result) {
+                        if (result.isSucceeded()) {
+                            mPhoto.setIsLiked(!mPhoto.isLiked());
+                            mPhoto.setLikesCount(mPhoto.getLikesCount() + (mPhoto.isLiked() ? 1 : -1));
+                            mLikeButton.setCompoundDrawablesWithIntrinsicBounds(mPhoto.isLiked() ? R.mipmap.ic_like_blue : R.mipmap.ic_empty_heart, 0, 0, 0);
+                            mLikesCount.setText(getResources().getQuantityString(R.plurals.d_likes, mPhoto.getLikesCount(), mPhoto.getLikesCount()));
+                        } else
+                            Notifications.showListAlertDialog(PhotoActivity.this, getString(R.string.error), result.getMessages());
+                    }
+                });
+            }
+        });
+
+        mRecordComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showRecordDialog();
+            }
+        });
+
+        mShareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, mPhoto.getShareUrl());
+                sendIntent.setType("text/plain");
+                startActivity(Intent.createChooser(sendIntent, getString(R.string.share_to)));
+            }
+        });
+
         mPlayer = new Player(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
                 if (whatIsPlaying() == HEADER) {
-                    mAdapter.setHeaderState(PhotosActivityAdapter.PLAY);
+                    changeHeaderUi(true, false);
                 } else if (whatIsPlaying() == COMMENT && mPlayingComment != -1) {
                     mAdapter.setIsCommentLoading(false);
-                    View v = getItemAt(mPlayingComment + 1);
-                    if (v != null) {
-                        v.findViewById(R.id.progress).setVisibility(View.GONE);
-                        v.findViewById(R.id.button_icon).setVisibility(View.VISIBLE);
-                    }
+                    mAdapter.notifyItemChanged(mPlayingComment);
                 }
 
             }
@@ -207,9 +376,8 @@ public class PhotoActivity extends AppCompatActivity {
         }, new Player.OnPlayerUpdateListener() {
             @Override
             public void onUpdate(int position) {
-                /*if (mCommentSeekBar != null)
-                    mCommentSeekBar.setProgress(position / 10);*/
-                AppCompatSeekBar appCompatSeekBar = mAdapter.getActiveSeekbar(mRefreshRecyclerViewFragment.getRecyclerView());
+
+                AppCompatSeekBar appCompatSeekBar = mAdapter.getActiveSeekBar(mRefreshRecyclerViewFragment.getRecyclerView());
                 if (appCompatSeekBar != null) {
                     appCompatSeekBar.setMax(mPlayer.getDuration() / 10);
                     appCompatSeekBar.setProgress(position / 10);
@@ -263,99 +431,7 @@ public class PhotoActivity extends AppCompatActivity {
             }
         });
 
-        mOnActionListener = new PhotosActivityAdapter.OnActionListener() {
-            @Override
-            public void onBackButtonClicked() {
-                onBackPressed();
-            }
-
-            @Override
-            public void onMenuButtonClicked(View v) {
-                if (mPopupMenu == null) {
-                    mPopupMenu = new PopupMenu(PhotoActivity.this, v);
-                    mPopupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                        @Override
-                        public boolean onMenuItemClick(MenuItem menuItem) {
-                            switch (menuItem.getItemId()) {
-                                case R.id.delete:
-                                    playHeader(false);
-                                    PhotosApi.delete(mPhoto.getId(), new ApiListeners.OnActionExecutedListener() {
-                                        @Override
-                                        public void onExecuted(Result result) {
-                                            if (result.isSucceeded()) {
-                                                Broadcasting.sendPhotoDelete(PhotoActivity.this, mPhoto.getId());
-                                                finish();
-                                            } else
-                                                Notifications.showSnackbar(PhotoActivity.this, result.getMessages().get(0));
-                                        }
-                                    });
-                                    break;
-                                case R.id.report:
-                                    PhotosApi.report(mPhoto.getId(), new ApiListeners.OnActionExecutedListener() {
-                                        @Override
-                                        public void onExecuted(Result result) {
-                                            if (result.isSucceeded())
-                                                Notifications.showSnackbar(PhotoActivity.this, getString(R.string.a_report_has_been_sent_successfully));
-                                            else
-                                                Notifications.showSnackbar(PhotoActivity.this, result.getMessages().get(0));
-                                        }
-                                    });
-                                    break;
-                            }
-                            return false;
-                        }
-                    });
-
-                    MenuInflater inflater = mPopupMenu.getMenuInflater();
-                    inflater.inflate(R.menu.photo_actions, mPopupMenu.getMenu());
-                    if (!mPhoto.isAuthor()) mPopupMenu.getMenu().getItem(0).setVisible(false);
-                }
-                mPopupMenu.show();
-            }
-
-            @Override
-            public void onLikeButtonClicked() {
-                if (mPhoto == null) return;
-                //TODO: send a like
-                PhotosApi.like(mPhoto.getId(), !mPhoto.isLiked(), new ApiListeners.OnActionExecutedListener() {
-                    @Override
-                    public void onExecuted(Result result) {
-                        if (result.isSucceeded()) {
-                            mPhoto.setIsLiked(!mPhoto.isLiked());
-                            mPhoto.setLikesCount(mPhoto.getLikesCount() + (mPhoto.isLiked() ? 1 : -1));
-                            mAdapter.notifyDataSetChanged();
-                        } else
-                            Notifications.showListAlertDialog(PhotoActivity.this, getString(R.string.error), result.getMessages());
-                    }
-                });
-            }
-
-            @Override
-            public void onShareButtonClicked() {
-                Intent sendIntent = new Intent();
-                sendIntent.setAction(Intent.ACTION_SEND);
-                sendIntent.putExtra(Intent.EXTRA_TEXT, mPhoto.getShareUrl());
-                sendIntent.setType("text/plain");
-                startActivity(Intent.createChooser(sendIntent, getString(R.string.share_to)));
-            }
-
-            @Override
-            public void onRecordButtonClicked() {
-                /**
-                 * first check for the recording permission
-                 */
-                if (!mArePermissionsGranted) {
-                    ActivityCompat.requestPermissions(PhotoActivity.this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_AUDIO_PERMISSION);
-                } else {
-                    mRecorderContainer.setVisibility(View.VISIBLE);
-                }
-            }
-
-            @Override
-            public void onPlayButtonClicked() {
-                playHeader(!mIsHeaderPlaying);
-            }
-
+        mOnActionListener = new PhotoActivityAdapterNew.OnActionListener() {
             @Override
             public void onPlayStopComment(Comment comment, int position, boolean isStopping) {
                 playComment(isStopping ? -1 : position);
@@ -377,14 +453,19 @@ public class PhotoActivity extends AppCompatActivity {
                 b.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        Comment comment = mPhoto.getComments().get(position);
+                        Comment comment = mAdapter.getItems().get(position);
                         PhotosApi.deleteComment(mPhoto.getId(), comment.getId(), new ApiListeners.OnActionExecutedListener() {
                             @Override
                             public void onExecuted(Result result) {
                                 if (result.isSucceeded()) {
                                     Notifications.showSnackbar(PhotoActivity.this, getString(R.string.comment_has_been_deleted_successfully));
-                                    mPhoto.getComments().remove(position);
+                                    mAdapter.getItems().remove(position);
+                                    mPhoto.setCommentsCount(mPhoto.getCommentsCount() - 1);
+                                    refreshCommentCount();
                                     mAdapter.notifyItemRemoved(position);
+                                    if (position == 0) {
+                                        mAdapter.notifyItemChanged(0);
+                                    }
                                 } else {
                                     Notifications.showSnackbar(PhotoActivity.this, result.getMessages().get(0));
                                 }
@@ -413,11 +494,99 @@ public class PhotoActivity extends AppCompatActivity {
         };
     }
 
+    private int whatIsPlaying() {
+        if (mIsHeaderPlaying) return HEADER;
+        if (mPlayingComment != -1) return COMMENT;
+        return NONE;
+    }
+
+    private void playHeader(boolean play) {
+        if (play == mIsHeaderPlaying) return;
+
+        if (play) {
+            playComment(-1);
+            mPlayer.play(mPhoto.getAudioUrl());
+        } else {
+            mPlayer.stop();
+        }
+
+        changeHeaderUi(play, play);
+        mIsHeaderPlaying = play;
+
+    }
+
+    private void playComment(int position) {
+        /**
+         * if the comment currently playing is the
+         * same as the one requested, just return
+         */
+        if (position == mPlayingComment) return;
+
+        /**
+         * if play a comment indicated by sending a position
+         * that is not equal to -1
+         */
+        if (position != -1) {
+            // stop the header audio
+            playHeader(false);
+
+            // stop any other playing comment
+            playComment(-1);
+
+            // label the comment as loading
+            mAdapter.setIsCommentLoading(true);
+
+            // set the playing comment in the adapter
+            mAdapter.setPlayingComments(position);
+
+            // play the comment using the Player object
+            mPlayer.play(mAdapter.getItems().get(position).getAudioUrl());
+        }
+
+        /**
+         * if the position is -1, i.e. stop any playing comment
+         */
+        else {
+            // shut off the loading indicator
+            mAdapter.setIsCommentLoading(false);
+
+            // set the playing comment in the adapter as no one (-1)
+            mAdapter.setPlayingComments(-1);
+
+            // stop the audio using the Player.stop() method.
+            mPlayer.stop();
+        }
+
+        //changeCommentUi(position != -1, position != -1 ? position : mPlayingComment);
+
+        // update which comment is playing now
+        mPlayingComment = position;
+    }
+
+    private void changeHeaderUi(boolean play, boolean loading) {
+        if (play && loading) {
+            mPlayStopButton.setImageResource(R.drawable.crystal_button);
+            mProgressBar.setVisibility(View.VISIBLE);
+        } else if (play) {
+            mPlayStopButton.setImageResource(R.drawable.stop_blue);
+            mProgressBar.setVisibility(View.GONE);
+        } else {
+            mPlayStopButton.setImageResource(R.drawable.play_blue);
+            mProgressBar.setVisibility(View.GONE);
+        }
+    }
+
     private void fillFields() {
+
+        /**
+         * connect the comments number textview with the
+         * sliding up pane
+         */
+        mSlidingUpPanelLayout.setDragView(mShowCommentsButton);
 
         mCancelRecordingButton.setVisibility(View.VISIBLE);
 
-        mAdapter = new PhotosActivityAdapter(mOnActionListener);
+        mAdapter = new PhotoActivityAdapterNew(mOnActionListener);
         mRefreshRecyclerViewFragment.setAdapter(mAdapter, new RefreshRecyclerViewFragment.ServiceWrapper() {
             @Override
             public void executeService() {
@@ -458,7 +627,23 @@ public class PhotoActivity extends AppCompatActivity {
             public void onLoaded(Result result, Model item) {
                 if (result.isSucceeded()) {
                     mPhoto = (Photo) item;
-                    mAdapter.setPhoto(mPhoto);
+
+                    /**
+                     * fill the photos fields
+                     */
+                    /**
+                     * the actual photo
+                     */
+                    loadPhoto();
+
+
+                    mLiveTextView.setVisibility(mPhoto.isLive() ? View.VISIBLE : View.GONE);
+                    mHashTagsTextView.setText(mPhoto.getHashTagsConcatenated());
+                    mLikesCount.setText(getResources().getQuantityString(R.plurals.d_likes, mPhoto.getLikesCount(), mPhoto.getLikesCount()));
+                    refreshCommentCount();
+                    mLikeButton.setCompoundDrawablesWithIntrinsicBounds(mPhoto.isLiked() ? R.mipmap.ic_like_blue : R.mipmap.ic_empty_heart, 0, 0, 0);
+
+                    mPlayStopButton.setVisibility(mPhoto.getAudioUrl().isEmpty() ? View.GONE : View.VISIBLE);
 
                     /**
                      * load the comments
@@ -491,7 +676,9 @@ public class PhotoActivity extends AppCompatActivity {
                 if (result.isSucceeded()) {
                     mRefreshRecyclerViewFragment.refreshItems(mRefreshRecyclerViewFragment.getFirstItemId(), null);
                     mPhoto.setCommentsCount(mPhoto.getCommentsCount() + 1);
-                    mAdapter.notifyDataSetChanged();
+                    refreshCommentCount();
+                    if (areCommentsShown()) return;
+                    mSlidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                 } else {
                     Notifications.showListAlertDialog(PhotoActivity.this, getString(R.string.error), result.getMessages());
                 }
@@ -499,100 +686,64 @@ public class PhotoActivity extends AppCompatActivity {
         });
     }
 
-    private void playHeader(boolean play) {
-        if (play == mIsHeaderPlaying) return;
-
-        if (play) {
-            playComment(-1);
-            mPlayer.play(mPhoto.getAudioUrl());
+    private void showRecordDialog() {
+        /**
+         * first check for the recording permission
+         */
+        if (!mArePermissionsGranted) {
+            ActivityCompat.requestPermissions(PhotoActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_AUDIO_PERMISSION);
         } else {
-            mPlayer.stop();
+            mRecorderContainer.setVisibility(View.VISIBLE);
         }
+    }
 
-        changeHeaderUi(play);
-        mIsHeaderPlaying = play;
+    private boolean areCommentsShown() {
+        return mSlidingUpPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED;
+    }
+
+    private void loadPhoto() {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
+                try {
+                    String filename = "photo.jpg";
+                    URL photoURL = new URL(mPhoto.getImageUrl());
+                    HttpURLConnection connection = (HttpURLConnection) photoURL.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+
+                    InputStream is = connection.getInputStream();
+                    Bitmap bitmap = BitmapFactory.decodeStream(is);
+
+                    FileOutputStream fileOutputStream = new FileOutputStream(getCacheDir() + filename);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 90, fileOutputStream);
+                    return filename;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String filename) {
+                super.onPostExecute(filename);
+                if (filename == null) return;
+                mPhotoImageView.setImage(ImageSource.uri(getCacheDir() + filename));
+                mPhotoImageView.setMinimumDpi(10);
+            }
+        }.execute();
 
     }
 
-    private void playComment(int position) {
-        if (position == mPlayingComment) return;
-
-        if (position != -1) {
-            playHeader(false);
-            playComment(-1);
-            mAdapter.setIsCommentLoading(true);
-            mAdapter.setPlayingComments(position);
-            mPlayer.play(mPhoto.getComments().get(position).getAudioUrl());
-        } else {
-            mAdapter.setIsCommentLoading(false);
-            mAdapter.setPlayingComments(-1);
-            mPlayer.stop();
-        }
-
-        changeCommentUi(position != -1, position != -1 ? position : mPlayingComment);
-        mPlayingComment = position;
-    }
-
-    private int whatIsPlaying() {
-        if (mIsHeaderPlaying) return HEADER;
-        if (mPlayingComment != -1) return COMMENT;
-        return NONE;
-    }
-
-    private void changeHeaderUi(boolean play) {
-        mAdapter.setHeaderState(play ? PhotosActivityAdapter.PLAY : PhotosActivityAdapter.STOP);
-    }
-
-    private void changeCommentUi(boolean play, int position) {
-        position++;
-        /**
-         * get the visible position of the item
-         * above the desired one
-         */
-        View aboveIt = getItemAt(position - 1);
-
-
-        /**
-         * get the visible position of the item
-         */
-        View v = getItemAt(position);
-
-        /**
-         * change the ui of the item
-         */
-        if (v != null) {
-            v.findViewById(R.id.container).setBackgroundResource(play ? R.color.light : R.color.white);
-            ((TextView) v.findViewById(R.id.full_name)).setTextColor(ContextCompat.getColor(PhotosTalkApplication.getContext(), play ? R.color.main : R.color.black));
-            ((ImageView) v.findViewById(R.id.button_icon)).setImageResource(play ? R.drawable.stop : R.drawable.play);
-            v.findViewById(R.id.button_icon).setVisibility(play ? View.GONE : View.VISIBLE);
-            v.findViewById(R.id.progress).setVisibility(play ? View.VISIBLE : View.GONE);
-            AppCompatSeekBar appCompatSeekBar = ((AppCompatSeekBar) v.findViewById(R.id.seek_bar));
-            appCompatSeekBar.setVisibility(play ? View.VISIBLE : View.GONE);
-            appCompatSeekBar.setProgress(0);
-        }
-
-        /**
-         * change the ui of the previous item
-         */
-        if (aboveIt != null)
-            if (position != 1)
-                aboveIt = aboveIt.findViewById(R.id.wrapper);
-            else
-                aboveIt = aboveIt.findViewById(R.id.header_of_first_comment);
-        if (aboveIt != null)
-            aboveIt.setBackgroundResource(play ? R.color.light : R.color.white);
-    }
-
-    private View getItemAt(int position) {
-        position = position -
-                ((LinearLayoutManager) mRefreshRecyclerViewFragment.getRecyclerView().getLayoutManager()).findFirstVisibleItemPosition();
-        return mRefreshRecyclerViewFragment.getRecyclerView().getChildAt(position);
+    private void refreshCommentCount() {
+        mShowCommentsButton.setText(getResources().getQuantityString(R.plurals.d_comments, mPhoto.getCommentsCount(), mPhoto.getCommentsCount()));
+        mCommentsLayoutCommentCount.setText(getResources().getQuantityString(R.plurals.d_people_commented_on_this, mPhoto.getCommentsCount(), mPhoto.getCommentsCount()));
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_AUDIO_PERMISSION) {
-            if (grantResults.length >= 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length >= 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 mArePermissionsGranted = true;
                 mRecorderContainer.setVisibility(View.VISIBLE);
             } else {
@@ -601,6 +752,4 @@ public class PhotoActivity extends AppCompatActivity {
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
-
-
 }

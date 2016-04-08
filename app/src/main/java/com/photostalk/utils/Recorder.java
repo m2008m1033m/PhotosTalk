@@ -2,12 +2,12 @@ package com.photostalk.utils;
 
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.photostalk.PhotosTalkApplication;
 import com.photostalk.R;
 
 import java.io.File;
@@ -41,8 +41,12 @@ public class Recorder {
     private AppCompatActivity mActivity;
 
     public Recorder(AppCompatActivity activity, OnRecordingListener onRecordingListener, final MediaPlayer.OnCompletionListener onCompletionListener) {
-        mFilename = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + System.currentTimeMillis() + ".mp4";
-        mFilename_tmp = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + System.currentTimeMillis() + "_tmp.mp4";
+        //mFilename = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + System.currentTimeMillis() + ".mp4";
+        //mFilename_tmp = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + System.currentTimeMillis() + "_tmp.mp4";
+
+        mFilename = PhotosTalkApplication.getContext().getCacheDir() + File.separator + System.currentTimeMillis() + ".mp4";
+        mFilename_tmp = PhotosTalkApplication.getContext().getCacheDir() + File.separator + System.currentTimeMillis() + "_tmp.mp4";
+
         mOnRecordingListener = onRecordingListener;
         mOnCompletionListener = new MediaPlayer.OnCompletionListener() {
             @Override

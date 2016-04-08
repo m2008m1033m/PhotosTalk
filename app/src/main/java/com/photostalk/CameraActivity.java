@@ -17,7 +17,6 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -151,7 +150,8 @@ public class CameraActivity extends AppCompatActivity {
                 if (mPhotosNumber == 0) return;
 
                 if (mPhotosNumber == 1) {
-                    String dirName = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "PhotosTalk" + File.separator + "tmp";
+                    //String dirName = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "PhotosTalk" + File.separator + "tmp";
+                    String dirName = getCacheDir() + File.separator + "PhotosTalk" + File.separator + "tmp";
                     File dir = new File(dirName);
                     if (dir.isDirectory()) {
                         for (String file : dir.list()) {
@@ -184,7 +184,8 @@ public class CameraActivity extends AppCompatActivity {
                     public void onPictureTaken(byte[] data, Camera camera) {
                         try {
 
-                            String path = Environment.getExternalStorageDirectory() + File.separator + "PhotosTalk" + File.separator + "tmp" + File.separator + System.currentTimeMillis() + ".jpg";
+                            //String path = Environment.getExternalStorageDirectory() + File.separator + "PhotosTalk" + File.separator + "tmp" + File.separator + System.currentTimeMillis() + ".jpg";
+                            String path = getCacheDir() + File.separator + "PhotosTalk" + File.separator + "tmp" + File.separator + System.currentTimeMillis() + ".jpg";
 
                             addPhotoPath(path);
 
@@ -238,7 +239,8 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void checkAndCreateDirectory() {
-        File directory = new File(Environment.getExternalStorageDirectory() + File.separator + "PhotosTalk/tmp");
+        //File directory = new File(Environment.getExternalStorageDirectory() + File.separator + "PhotosTalk/tmp");
+        File directory = new File(getCacheDir() + File.separator + "PhotosTalk/tmp");
         if (!directory.mkdirs()) {
             String[] children = directory.list();
             for (String aChildren : children) {
@@ -246,7 +248,6 @@ public class CameraActivity extends AppCompatActivity {
             }
         }
     }
-
 
     private void setupRotationDetector() {
         SimpleOrientationListener simpleOrientationListener = new SimpleOrientationListener(this) {
@@ -417,7 +418,6 @@ public class CameraActivity extends AppCompatActivity {
             return mPhoto3;
         }
     }
-
 
     private void requestPermissions() {
         List<String> permissionsNeeded = new ArrayList<>();

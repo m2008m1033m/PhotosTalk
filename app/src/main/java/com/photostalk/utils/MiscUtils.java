@@ -1,7 +1,9 @@
 package com.photostalk.utils;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.TypedValue;
 
 import com.photostalk.PhotosTalkApplication;
 import com.photostalk.R;
@@ -116,12 +118,17 @@ public class MiscUtils {
         String[] bits = str.split(" ");
         String finalDescription = "";
         for (String bit : bits) {
-            if(bit.trim().isEmpty()) continue;
+            if (bit.trim().isEmpty()) continue;
             if (!bit.startsWith("#"))
                 bit = "#" + bit;
             finalDescription += bit + " ";
         }
 
         return finalDescription;
+    }
+
+    public static int convertDP2Pixel(int dp) {
+        Resources r = PhotosTalkApplication.getContext().getResources();
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
     }
 }

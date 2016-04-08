@@ -1,8 +1,8 @@
 package com.photostalk.services;
 
 import android.graphics.Bitmap;
-import android.os.Environment;
 
+import com.photostalk.PhotosTalkApplication;
 import com.photostalk.models.BestPhoto;
 
 import java.io.File;
@@ -18,7 +18,8 @@ public class Local {
     public static ArrayList<BestPhoto> getTmpTakenPhotos() {
         ArrayList<BestPhoto> photos = new ArrayList<>();
 
-        String dirStr = Environment.getExternalStorageDirectory() + File.separator + "PhotosTalk" + File.separator + "tmp";
+        //String dirStr = Environment.getExternalStorageDirectory() + File.separator + "PhotosTalk" + File.separator + "tmp";
+        String dirStr = PhotosTalkApplication.getContext().getCacheDir() + File.separator + "PhotosTalk" + File.separator + "tmp";
 
         File tmpDir = new File(dirStr);
 

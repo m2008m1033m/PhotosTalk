@@ -125,4 +125,32 @@
     <string name="post_photo">Post Photot</string>
     <string name="trending_stories">Trending Stories</string>
     <string name="my_stories">My Stories</string>
+    <string name="share">Share</string>
+    <string name="record">Record</string>
+    <string name="like">Like</string>
+    <string name="zero_comments">0 Comments</string>
+    <string name="zero_likes">0 Likes</string>
+    <string name="main_photo">Main Photo</string>
+    <string name="zero_people_commented_on_this">0 People commented on this.</string>
+    <string name="record_button">Record Button</string>
+    <string name="d_likes">%d Likes</string>
+    <string name="d_comments">%d Comments</string>
+    <string name="live">Live</string>
+    <string name="s_commented">%s Commented</string>
+    <string name="play_stop_audio">Play/Stop Audio</string>
+
+    <plurals name="d_people_commented_on_this">
+        <item quantity="one">%d person commented on this.</item>
+        <item quantity="other">%d people commented on this.</item>
+    </plurals>
+
+    <plurals name="d_comments">
+        <item quantity="one">%d Comment</item>
+        <item quantity="other">%d Comments</item>
+    </plurals>
+
+    <plurals name="d_likes">
+        <item quantity="one">%d Like</item>
+        <item quantity="other">%d Likes</item>
+    </plurals>
 </resources>

@@ -36,7 +36,6 @@
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="portrait"
             android:theme="@style/NoActionBarThemWithSolidNav">
-
         </activity>
 
         <activity
