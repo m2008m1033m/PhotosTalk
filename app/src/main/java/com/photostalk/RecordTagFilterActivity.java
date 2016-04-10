@@ -124,6 +124,7 @@ public class RecordTagFilterActivity extends AppCompatActivity {
         initReferences();
         initEvents();
         fill();
+        mMenuFAB.expand();
     }
 
     private void initReferences() {
