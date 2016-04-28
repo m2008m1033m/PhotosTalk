@@ -351,7 +351,7 @@ public class UserApi {
     }
 
     public static void search(String username, ApiListeners.OnItemsArrayLoadedListener listener) {
-        Communicator.getInstance().cancelByTag("photo_hashtag");
+        Communicator.getInstance().cancelByTag("user_search");
         RequestParams params = new RequestParams("username", username);
         Stub.get("user/search", listener, new Stub.ModelParser() {
             @Override

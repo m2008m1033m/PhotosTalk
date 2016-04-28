@@ -166,6 +166,15 @@ public class Communicator {
                 super.onFinish();
                 mNumberOfParallelRequests--;
                 engageNewRequest();
+                handler.onFinish();
+            }
+
+            @Override
+            public void onCancel() {
+                super.onCancel();
+                mNumberOfParallelRequests--;
+                engageNewRequest();
+                handler.onCancel();
             }
         };
 

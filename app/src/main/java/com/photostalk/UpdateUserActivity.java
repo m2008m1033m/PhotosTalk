@@ -231,6 +231,7 @@ public class UpdateUserActivity extends AppCompatActivity {
                     User.getInstance().update();
                     Broadcasting.sendProfileUpdated(UpdateUserActivity.this);
                     mPhotoPath = null;
+                    finish();
                 } else {
                     Notifications.showListAlertDialog(UpdateUserActivity.this, getString(R.string.error), result.getMessages());
                 }

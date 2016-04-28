@@ -164,7 +164,7 @@ public class RegistrationActivity extends AppCompatActivity {
             return false;
         }
 
-        if (!Validations.noSpaces(mUserNameEditText.getText().toString())) {
+        if (!Validations.noSpaces(mUserNameEditText.getText().toString().trim())) {
             Notifications.showAlertDialog(this, getString(R.string.error), getString(R.string.username_cannot_have_whitespaces));
             return false;
         }
