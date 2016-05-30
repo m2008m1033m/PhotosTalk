@@ -33,6 +33,8 @@ public class NotificationsFragmentAdapter extends RefreshAdapter {
         void onFollowButtonClicked(int position);
 
         void onUserClicked(int position);
+
+        void onItemClicked(int position);
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -104,7 +106,7 @@ public class NotificationsFragmentAdapter extends RefreshAdapter {
         vh.mCardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mOnActionListener.onUserClicked(vh.mPosition);
+                mOnActionListener.onItemClicked(vh.mPosition);
             }
         });
 
@@ -123,32 +125,37 @@ public class NotificationsFragmentAdapter extends RefreshAdapter {
         Notification item = mItems.get(position);
         String text = "";
 
-        // request
-        if (item.getTypeId() == 3) {
-            ((ViewHolder) holder).mFollowButton.setVisibility(View.GONE);
-            ((ViewHolder) holder).mAcceptReject.setVisibility(View.VISIBLE);
-            text = PhotosTalkApplication.getContext().getString(R.string.has_requested_to_follow_you, item.getUser().getName());
-        }
-        // follow
-        else if (item.getTypeId() == 1) {
-            ((ViewHolder) holder).mFollowButton.setVisibility(View.VISIBLE);
-            ((ViewHolder) holder).mAcceptReject.setVisibility(View.GONE);
-            ((ViewHolder) holder).mFollowButton.setTextColor(ContextCompat.getColor(PhotosTalkApplication.getContext(), item.getUser().isFollowingUser() ? R.color.white : R.color.main));
-            ((ViewHolder) holder).mFollowButton.setBackgroundResource(item.getUser().isFollowingUser() ? R.drawable.main_button : R.drawable.bordered_button_main);
-            ((ViewHolder) holder).mFollowButton.setText(item.getUser().isFollowingUser() ? R.string.following : item.getUser().isFollowRequestSent() ? R.string.requested : R.string.follow);
-            ((ViewHolder) holder).mFollowButton.setEnabled(!item.getUser().isFollowRequestSent());
-            text = PhotosTalkApplication.getContext().getString(R.string.has_started_following_you, item.getUser().getName());
-        }
+        if (item.getType() == Notification.Type.UNKNOWN) return;
 
-        // accepted request
-        else if (item.getTypeId() == 5) {
-            ((ViewHolder) holder).mFollowButton.setVisibility(View.VISIBLE);
-            ((ViewHolder) holder).mAcceptReject.setVisibility(View.GONE);
-            ((ViewHolder) holder).mFollowButton.setTextColor(ContextCompat.getColor(PhotosTalkApplication.getContext(), item.getUser().isFollowingUser() ? R.color.white : R.color.main));
-            ((ViewHolder) holder).mFollowButton.setBackgroundResource(item.getUser().isFollowingUser() ? R.drawable.main_button : R.drawable.bordered_button_main);
-            ((ViewHolder) holder).mFollowButton.setText(item.getUser().isFollowingUser() ? R.string.following : item.getUser().isFollowRequestSent() ? R.string.requested : R.string.follow);
-            ((ViewHolder) holder).mFollowButton.setEnabled(!item.getUser().isFollowRequestSent());
-            text = PhotosTalkApplication.getContext().getString(R.string.has_accepted_your_follow_request, item.getUser().getName());
+        switch (item.getType()) {
+            case REQUEST:
+                ((ViewHolder) holder).mFollowButton.setVisibility(View.GONE);
+                ((ViewHolder) holder).mAcceptReject.setVisibility(View.VISIBLE);
+                text = PhotosTalkApplication.getContext().getString(R.string.has_requested_to_follow_you, item.getUser().getName());
+                break;
+            case FOLLOW:
+                ((ViewHolder) holder).mFollowButton.setVisibility(View.VISIBLE);
+                ((ViewHolder) holder).mAcceptReject.setVisibility(View.GONE);
+                ((ViewHolder) holder).mFollowButton.setTextColor(ContextCompat.getColor(PhotosTalkApplication.getContext(), item.getUser().isFollowingUser() ? R.color.white : R.color.main));
+                ((ViewHolder) holder).mFollowButton.setBackgroundResource(item.getUser().isFollowingUser() ? R.drawable.main_button : R.drawable.bordered_button_main);
+                ((ViewHolder) holder).mFollowButton.setText(item.getUser().isFollowingUser() ? R.string.following : item.getUser().isFollowRequestSent() ? R.string.requested : R.string.follow);
+                ((ViewHolder) holder).mFollowButton.setEnabled(!item.getUser().isFollowRequestSent());
+                text = PhotosTalkApplication.getContext().getString(R.string.has_started_following_you, item.getUser().getName());
+                break;
+            case REQUEST_ACCEPTANCE:
+                ((ViewHolder) holder).mFollowButton.setVisibility(View.VISIBLE);
+                ((ViewHolder) holder).mAcceptReject.setVisibility(View.GONE);
+                ((ViewHolder) holder).mFollowButton.setTextColor(ContextCompat.getColor(PhotosTalkApplication.getContext(), item.getUser().isFollowingUser() ? R.color.white : R.color.main));
+                ((ViewHolder) holder).mFollowButton.setBackgroundResource(item.getUser().isFollowingUser() ? R.drawable.main_button : R.drawable.bordered_button_main);
+                ((ViewHolder) holder).mFollowButton.setText(item.getUser().isFollowingUser() ? R.string.following : item.getUser().isFollowRequestSent() ? R.string.requested : R.string.follow);
+                ((ViewHolder) holder).mFollowButton.setEnabled(!item.getUser().isFollowRequestSent());
+                text = PhotosTalkApplication.getContext().getString(R.string.has_accepted_your_follow_request, item.getUser().getName());
+                break;
+            case COMMENT:
+                ((ViewHolder) holder).mFollowButton.setVisibility(View.GONE);
+                ((ViewHolder) holder).mAcceptReject.setVisibility(View.GONE);
+                text = PhotosTalkApplication.getContext().getString(R.string.s_has_commented_on_your_photo, item.getUser().getName());
+                break;
         }
 
         if (item.getUser().getPhoto().isEmpty()) {

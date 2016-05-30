@@ -27,7 +27,7 @@ import java.util.ArrayList;
  * the footer is gonna hold the load more button and is gonna be at the bottom
  * the rest are the comments items
  */
-public class PhotoActivityAdapterNew extends RefreshAdapter {
+public class PhotoActivityAdapter extends RefreshAdapter {
 
 
     public interface OnActionListener {
@@ -79,7 +79,7 @@ public class PhotoActivityAdapterNew extends RefreshAdapter {
     private boolean mIsCommentLoading = false;
 
 
-    public PhotoActivityAdapterNew(OnActionListener listener) {
+    public PhotoActivityAdapter(OnActionListener listener) {
         mOnActionListener = listener;
     }
 

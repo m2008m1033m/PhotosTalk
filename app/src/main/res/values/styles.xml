@@ -31,6 +31,12 @@
         <item name="colorAccent">@color/secondary</item>
     </style>
 
+    <style name="NoActionBarThemWithSolidNavDark" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/main</item>
+        <item name="colorPrimaryDark">@color/secondary</item>
+        <item name="colorAccent">@color/secondary</item>
+    </style>
+
     <style name="TextInputLayout.White" parent="@android:style/TextAppearance">
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">12sp</item>

@@ -24,6 +24,13 @@
             android:value="@string/facebook_app_id"/>
 
         <activity
+            android:name=".RecordTagFilterActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:theme="@style/NoActionBarThemWithSolidNav">
+        </activity>
+
+        <activity
             android:name="com.photostalk.CameraActivity"
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="portrait"
@@ -35,11 +42,11 @@
             android:name=".PhotoActivity"
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="portrait"
-            android:theme="@style/NoActionBarThemWithSolidNav">
+            android:theme="@style/NoActionBarThemWithSolidNavDark">
         </activity>
 
         <activity
-            android:name=".PreviewPhotoActivityNew"
+            android:name=".PreviewPhotoActivity"
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="portrait"
             android:theme="@style/NoActionBarThemWithSolidNav">
@@ -71,21 +78,6 @@
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
-        </activity>
-
-        <activity
-            android:name=".PreviewPhotoActivity"
-            android:configChanges="keyboardHidden|orientation"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme">
-        </activity>
-
-        <activity
-            android:name="com.photostalk.RecordTagFilterActivity"
-            android:configChanges="keyboardHidden|orientation"
-            android:screenOrientation="portrait"
-            android:theme="@style/NoActionBarThemWithSolidNav">
-
         </activity>
 
         <activity

@@ -1,10 +1,10 @@
 package com.photostalk.utils;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,7 +56,7 @@ public class Notifications {
         return ad;
     }
 
-    public static void showSnackbar(FragmentActivity activity, String message) {
+    public static void showSnackbar(Activity activity, String message) {
         final ViewGroup viewGroup = (ViewGroup) ((ViewGroup) activity
                 .findViewById(android.R.id.content)).getChildAt(0);
         Snackbar.make(viewGroup, message, Snackbar.LENGTH_LONG).show();

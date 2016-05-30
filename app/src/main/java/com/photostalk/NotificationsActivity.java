@@ -9,7 +9,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
-import android.view.Menu;
 import android.view.MenuItem;
 
 import com.photostalk.adapters.NotificationsFragmentAdapter;
@@ -45,6 +44,8 @@ public class NotificationsActivity extends AppCompatActivity {
 
 
         mRefreshRecyclerViewFragment = ((RefreshRecyclerViewFragment) getSupportFragmentManager().findFragmentById(R.id.refresh_recycler_view_fragment));
+        mRefreshRecyclerViewFragment.setIsLazyLoading(true);
+
         mNotificationsAdapter = new NotificationsFragmentAdapter(new NotificationsFragmentAdapter.OnActionListener() {
             @Override
             public void onAcceptButtonClicked(final int position) {
@@ -95,6 +96,19 @@ public class NotificationsActivity extends AppCompatActivity {
                 UserModel user = ((Notification) mNotificationsAdapter.getItems().get(position)).getUser();
                 if (user == null) return;
                 goToUser(user.getId());
+            }
+
+            @Override
+            public void onItemClicked(int position) {
+                Notification notification = ((Notification) mNotificationsAdapter.getItems().get(position));
+                if (notification.getType() == Notification.Type.COMMENT) {
+                    String photoId = notification.getPhoto().getId();
+                    Intent i = new Intent(NotificationsActivity.this, PhotoActivity.class);
+                    i.putExtra(PhotoActivity.PHOTO_ID, photoId);
+                    startActivity(i);
+                } else {
+                    goToUser(notification.getUser().getId());
+                }
             }
         });
         mRefreshRecyclerViewFragment.setAdapter(mNotificationsAdapter, new RefreshRecyclerViewFragment.ServiceWrapper() {

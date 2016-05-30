@@ -217,10 +217,10 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupFragments() {
-        if (!mIsOtherUser || !mUser.isPrivate())
+        if (!mIsOtherUser || !mUser.isPrivate() || mUser.isFollowingUser())
             setupStoriesFragment();
         setupAboutMeFragment();
-        if (!mIsOtherUser || !mUser.isPrivate())
+        if (!mIsOtherUser || !mUser.isPrivate() || mUser.isFollowingUser())
             setupPhotosFragment();
     }
 

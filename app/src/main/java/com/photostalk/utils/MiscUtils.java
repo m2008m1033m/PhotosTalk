@@ -1,9 +1,12 @@
 package com.photostalk.utils;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.TypedValue;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
 import com.photostalk.PhotosTalkApplication;
 import com.photostalk.R;
@@ -130,5 +133,17 @@ public class MiscUtils {
     public static int convertDP2Pixel(int dp) {
         Resources r = PhotosTalkApplication.getContext().getResources();
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
+    }
+
+    public static void showKeyboard(boolean show, EditText editText) {
+        if (editText == null) return;
+        if (show) {
+            editText.requestFocus();
+            InputMethodManager imm = (InputMethodManager) editText.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(editText, InputMethodManager.SHOW_FORCED);
+        } else {
+            InputMethodManager imm = (InputMethodManager) editText.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+        }
     }
 }

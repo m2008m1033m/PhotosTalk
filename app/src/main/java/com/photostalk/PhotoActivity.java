@@ -8,16 +8,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSeekBar;
@@ -34,33 +35,37 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.davemorrissey.labs.subscaleview.ImageSource;
-import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
-import com.photostalk.adapters.PhotoActivityAdapterNew;
+import com.photostalk.adapters.PhotoActivityAdapter;
 import com.photostalk.core.Communicator;
 import com.photostalk.customViews.AudioVisualizer;
+import com.photostalk.customViews.WaveAudioVisualizer;
+import com.photostalk.fragments.PhotoFragment;
 import com.photostalk.fragments.RefreshRecyclerViewFragment;
 import com.photostalk.models.Comment;
 import com.photostalk.models.Model;
 import com.photostalk.models.Photo;
+import com.photostalk.models.Story;
 import com.photostalk.services.PhotosApi;
 import com.photostalk.services.Result;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
+import com.photostalk.utils.MiscUtils;
 import com.photostalk.utils.Notifications;
+import com.photostalk.utils.PhotosTalkUtils;
 import com.photostalk.utils.Player;
-import com.photostalk.utils.Recorder;
+import com.photostalk.utils.recorder.Recorder;
+import com.photostalk.utils.recorder.RecorderNewAPI;
+import com.photostalk.utils.recorder.RecorderOldAPI;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.ArrayList;
 
 public class PhotoActivity extends AppCompatActivity {
 
     public final static String PHOTO_ID = "photo_id";
+    public final static String STORY = "story";
+    public final static String POSITION_IN_STORY = "position_in_story";
     private final static int REQUEST_AUDIO_PERMISSION = 0;
 
     private final static int HEADER = 0;
@@ -77,23 +82,25 @@ public class PhotoActivity extends AppCompatActivity {
     private TextView mShareButton;
     private TextView mLiveTextView;
     private TextView mHashTagsTextView;
-    private SubsamplingScaleImageView mPhotoImageView;
+    private ViewPager mViewPager;
     private ImageView mPlayStopButton;
     private ImageButton mMicButton;
     private ProgressBar mProgressBar;
     private FrameLayout mRecorderContainer;
-    private AudioVisualizer mAudioVisualizer;
+    private View mAudioVisualizer;
     private TextView mRecordDuration;
     private View mRecordFlag;
     private LinearLayout mRecordIndicatorWrapper;
-    private ImageView mCancelRecordingButton;
     private FloatingActionButton mRecordButton;
+    private FloatingActionButton mPlayStopRecordingButton;
+    private FloatingActionButton mPostRecordedCommentButton;
     private RefreshRecyclerViewFragment mRefreshRecyclerViewFragment;
     private TextView mCommentsLayoutCommentCount;
     private AlertDialog mProgressDialog;
 
-    private PhotoActivityAdapterNew mAdapter;
-    private PhotoActivityAdapterNew.OnActionListener mOnActionListener;
+    private PhotoActivityAdapter mAdapter;
+    private PhotoActivityAdapter.OnActionListener mOnActionListener;
+    private Menu mMenu;
 
     private BroadcastReceiver mBroadcastReceiver;
     private Recorder mRecorder;
@@ -101,10 +108,13 @@ public class PhotoActivity extends AppCompatActivity {
 
     private Player mPlayer;
     private Photo mPhoto;
+    private Story mStory;
     private int mPlayingComment = -1;
     private boolean mIsHeaderPlaying = false;
     private boolean mIsOverlayShown = true;
     private boolean mOverlayAnimating = false;
+    private int mCurrentFragmentId; // same as the position of teh fragment in the view pager
+    private boolean mFirstTimeToCheckHasRecorded = true;
 
 
     @Override
@@ -115,6 +125,42 @@ public class PhotoActivity extends AppCompatActivity {
          * load the state of the audio permission
          */
         mArePermissionsGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+
+        /**
+         * fetch the story
+         */
+        mStory = ((Story) getIntent().getExtras().getSerializable(STORY));
+        if (mStory == null) {
+            /**
+             * if there are no stories passed: get the id of the photo
+             */
+            String photoId = getIntent().getStringExtra(PHOTO_ID);
+            if (photoId == null) {
+                Notifications.showAlertDialog(this, getString(R.string.error), getString(R.string.error_loading_the_photo)).setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        finish();
+                    }
+                });
+                return;
+            }
+
+            /**
+             * create a photo object
+             */
+            Photo photo = new Photo();
+            photo.setId(photoId);
+
+            /**
+             * and a story object and add the photo object
+             * into the story
+             */
+            mCurrentFragmentId = 0;
+            mStory = new Story();
+            mStory.getPhotos().add(photo);
+        } else {
+            mCurrentFragmentId = getIntent().getIntExtra(POSITION_IN_STORY, 0);
+        }
 
         setContentView(R.layout.photo_activity);
 
@@ -135,6 +181,8 @@ public class PhotoActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.photo_actions, menu);
+        mMenu = menu;
+        hideShowDeleteOption();
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -145,6 +193,7 @@ public class PhotoActivity extends AppCompatActivity {
                 this.finish();
                 return true;
             case R.id.delete:
+                if (mPhoto == null) return true;
                 playHeader(false);
                 PhotosApi.delete(mPhoto.getId(), new ApiListeners.OnActionExecutedListener() {
                     @Override
@@ -158,6 +207,7 @@ public class PhotoActivity extends AppCompatActivity {
                 });
                 return true;
             case R.id.report:
+                if (mPhoto == null) return true;
                 PhotosApi.report(mPhoto.getId(), new ApiListeners.OnActionExecutedListener() {
                     @Override
                     public void onExecuted(Result result) {
@@ -208,11 +258,11 @@ public class PhotoActivity extends AppCompatActivity {
         mBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(Broadcasting.PHOTO_DELETE)) {
+                if (intent.getAction().equals(Broadcasting.PHOTO_DELETE) && mPhoto != null) {
                     String photoId = intent.getStringExtra("photo_id");
                     if (!photoId.equals(mPhoto.getId())) return;
                     finish();
-                } else if (intent.getAction().equals(Broadcasting.STORY_DELETE)) {
+                } else if (intent.getAction().equals(Broadcasting.STORY_DELETE) && mPhoto != null) {
                     String storyId = intent.getStringExtra("story_id");
                     if (mPhoto.getStory().getId().equals(storyId))
                         finish();
@@ -244,7 +294,7 @@ public class PhotoActivity extends AppCompatActivity {
         mShareButton = ((TextView) findViewById(R.id.share_button));
         mLiveTextView = ((TextView) findViewById(R.id.is_live_text_view));
         mHashTagsTextView = ((TextView) findViewById(R.id.hash_tags_text_view));
-        mPhotoImageView = ((SubsamplingScaleImageView) findViewById(R.id.photo));
+        mViewPager = ((ViewPager) findViewById(R.id.viewpager));
         mPlayStopButton = ((ImageView) findViewById(R.id.play_stop_button));
         mMicButton = ((ImageButton) findViewById(R.id.mic_button));
         mProgressBar = ((ProgressBar) findViewById(R.id.progress));
@@ -252,17 +302,18 @@ public class PhotoActivity extends AppCompatActivity {
         mRefreshRecyclerViewFragment = ((RefreshRecyclerViewFragment) getSupportFragmentManager().findFragmentById(R.id.refresh_recycler_view_fragment));
         mCommentsLayoutCommentCount = ((TextView) findViewById(R.id.comments_layout_comments_number));
         mRecorderContainer = ((FrameLayout) findViewById(R.id.recorder));
-        mAudioVisualizer = ((AudioVisualizer) findViewById(R.id.audio_visualizer));
+        mAudioVisualizer = findViewById(Build.VERSION.SDK_INT >= 18 ? R.id.audio_visualizer_wave : R.id.audio_visualizer);
         mRecordDuration = ((TextView) findViewById(R.id.record_duration));
         mRecordFlag = findViewById(R.id.record_flag);
         mRecordIndicatorWrapper = ((LinearLayout) findViewById(R.id.record_indicator_wrapper));
-        mCancelRecordingButton = ((ImageView) findViewById(R.id.cancel_button));
-        mRecordButton = ((FloatingActionButton) findViewById(R.id.record_button));
+        mRecordButton = ((FloatingActionButton) findViewById(R.id.fab));
+        mPlayStopRecordingButton = ((FloatingActionButton) findViewById(R.id.play_stop_recording_button));
+        mPostRecordedCommentButton = ((FloatingActionButton) findViewById(R.id.post_button));
     }
 
     private void initEvents() {
 
-        mPhotoImageView.setOnClickListener(new View.OnClickListener() {
+        mViewPager.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mOverlayAnimating) return;
@@ -298,16 +349,47 @@ public class PhotoActivity extends AppCompatActivity {
             }
         });
 
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                /**
+                 * stop the player of the photo and the comment
+                 */
+                playComment(-1);
+                playHeader(false);
+
+                /**
+                 * set the current id
+                 */
+                mCurrentFragmentId = position;
+                PhotoFragment fragment = ((PhotoFragment) ((FragmentPagerAdapter) mViewPager.getAdapter()).getItem(position));
+                mPhoto = fragment.getPhoto();
+                fillPhotoInfo();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
         mMicButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showRecordDialog();
+                if (mPhoto == null) return;
+                showRecordDialog(true);
             }
         });
 
         mPlayStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (mPhoto == null) return;
                 playHeader(!mIsHeaderPlaying);
             }
         });
@@ -315,6 +397,7 @@ public class PhotoActivity extends AppCompatActivity {
         mLikeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (mPhoto == null) return;
                 PhotosApi.like(mPhoto.getId(), !mPhoto.isLiked(), new ApiListeners.OnActionExecutedListener() {
                     @Override
                     public void onExecuted(Result result) {
@@ -333,13 +416,15 @@ public class PhotoActivity extends AppCompatActivity {
         mRecordComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showRecordDialog();
+                if (mPhoto == null) return;
+                showRecordDialog(true);
             }
         });
 
         mShareButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (mPhoto == null) return;
                 Intent sendIntent = new Intent();
                 sendIntent.setAction(Intent.ACTION_SEND);
                 sendIntent.putExtra(Intent.EXTRA_TEXT, mPhoto.getShareUrl());
@@ -393,64 +478,78 @@ public class PhotoActivity extends AppCompatActivity {
         mRecordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (mPhoto == null) return;
                 /**
                  * if it is currently recording
                  * stop and post
                  */
                 if (mRecorder.getState() == Recorder.RECORDING) {
                     mRecorder.stop();
-                    submitComment();
-                    mRecorderContainer.setVisibility(View.GONE);
+                    showRecordUI(false);
+
                 }
                 /**
                  * start recording
                  */
-                else if (mRecorder.getState() == Recorder.NONE) {
-                    mRecordDuration.setText("00:00");
-                    final long startTime = System.currentTimeMillis();
-                    mRecordIndicatorWrapper.setVisibility(View.VISIBLE);
-                    mRecordDuration.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mRecorder.getState() != Recorder.RECORDING) {
-                                mRecordIndicatorWrapper.setVisibility(View.GONE);
-                                return;
-                            }
-                            int seconds = (int) ((System.currentTimeMillis() - startTime) / 1000);
-                            mRecordDuration.setText("00:" + (seconds >= 10 ? "" : "0") + seconds);
-                            mRecordFlag.setVisibility(seconds % 2 == 0 ? View.VISIBLE : View.INVISIBLE);
-                            mRecordDuration.postDelayed(this, 1000);
-                        }
-                    }, 1000);
+                else if (mRecorder.getState() == RecorderOldAPI.NONE) {
+                    showRecordUI(true);
                     mRecorder.record(20);
                 }
             }
         });
 
-        mCancelRecordingButton.setOnClickListener(new View.OnClickListener() {
+
+        mPostRecordedCommentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                submitComment();
+                showRecordDialog(false);
+            }
+        });
+
+        mPlayStopRecordingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mRecorder.getState() == Recorder.PLAYING) {
+                    // stop
+                    mRecorder.stopPlaying();
+                    mPlayStopRecordingButton.setImageResource(R.drawable.play_blue);
+                } else {
+                    // play
+                    mRecorder.play();
+                    mPlayStopRecordingButton.setImageResource(R.drawable.stop_blue);
+                }
+            }
+        });
+
+        /*mCancelRecordingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mRecorder.cancel();
                 mRecorder.clean();
-                mRecorderContainer.setVisibility(View.GONE);
+                showRecordDialog(false);
             }
-        });
+        });*/
 
-        mOnActionListener = new PhotoActivityAdapterNew.OnActionListener() {
+        mOnActionListener = new PhotoActivityAdapter.OnActionListener() {
             @Override
             public void onPlayStopComment(Comment comment, int position, boolean isStopping) {
+                if (mPhoto == null) return;
                 playComment(isStopping ? -1 : position);
             }
 
             @Override
             public void onSeek(int progress) {
+                if (mPhoto == null) return;
                 if (mPlayingComment == -1) return;
                 mPlayer.seek(progress * 10);
             }
 
             @Override
             public void onDeleteCommentClicked(final int position) {
-                if (!mPhoto.isAuthor()) return;
+                if (mPhoto == null) return;
+                final Comment comment = mAdapter.getItems().get(position);
+                if (!mPhoto.isAuthor() && !comment.isAuthor()) return;
                 playComment(-1);
                 AlertDialog.Builder b = new AlertDialog.Builder(PhotoActivity.this);
                 b.setTitle(R.string.confirm);
@@ -458,7 +557,6 @@ public class PhotoActivity extends AppCompatActivity {
                 b.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        Comment comment = mAdapter.getItems().get(position);
                         PhotosApi.deleteComment(mPhoto.getId(), comment.getId(), new ApiListeners.OnActionExecutedListener() {
                             @Override
                             public void onExecuted(Result result) {
@@ -490,6 +588,7 @@ public class PhotoActivity extends AppCompatActivity {
 
             @Override
             public void onUserClicked(String userId) {
+                if (mPhoto == null) return;
                 Intent i = new Intent(PhotoActivity.this, ProfileActivity.class);
                 i.putExtra(ProfileActivity.USER_ID, userId);
                 startActivity(i);
@@ -506,6 +605,7 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     private void playHeader(boolean play) {
+        if (play && mPhoto == null) return;
         if (play == mIsHeaderPlaying) return;
 
         if (play) {
@@ -521,6 +621,7 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     private void playComment(int position) {
+        if (position != -1 && mPhoto == null) return;
         /**
          * if the comment currently playing is the
          * same as the one requested, just return
@@ -570,9 +671,9 @@ public class PhotoActivity extends AppCompatActivity {
 
     private boolean stopRecorder() {
         if (mRecorderContainer != null && mRecorderContainer.getVisibility() == View.VISIBLE) {
-            if (mRecorder.getState() == Recorder.RECORDING)
+            if (mRecorder.getState() == RecorderOldAPI.RECORDING)
                 mRecorder.cancel();
-            mRecorderContainer.setVisibility(View.GONE);
+            showRecordDialog(false);
             return true;
         }
 
@@ -593,6 +694,55 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     private void fillFields() {
+        /**
+         * hide the recorder dialog:
+         */
+        mRecorderContainer.setVisibility(View.GONE);
+
+        /**
+         * setup the view pager
+         */
+        final PhotoFragment[] photoFragments = new PhotoFragment[mStory.getPhotos().size()];
+        int counter = 0;
+        for (final Photo p : mStory.getPhotos()) {
+            final int id = counter;
+            photoFragments[counter++] = new PhotoFragment() {
+                @Override
+                public void onViewCreated(View view, Bundle savedInstanceState) {
+                    super.onViewCreated(view, savedInstanceState);
+                    setPhotoId(p.getId(), id, new OnActionListener() {
+                        @Override
+                        public void onPhotoLoaded(int id, Photo photo) {
+                            if (mCurrentFragmentId == id) {
+                                mPhoto = photo;
+                                fillPhotoInfo();
+                                hideShowDeleteOption();
+                            }
+                        }
+
+                        @Override
+                        public void onSwipped() {
+                            mRefreshRecyclerViewFragment.refreshItems(mRefreshRecyclerViewFragment.getFirstItemId(), null);
+                            photoFragments[id].stopLoadingUI();
+                        }
+                    });
+                }
+            };
+        }
+
+        mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public Fragment getItem(int position) {
+                return photoFragments[position];
+            }
+
+            @Override
+            public int getCount() {
+                return photoFragments.length;
+            }
+        });
+
+        mViewPager.setOffscreenPageLimit(photoFragments.length <= 20 ? photoFragments.length : 20);
 
         /**
          * connect the comments number textview with the
@@ -600,86 +750,100 @@ public class PhotoActivity extends AppCompatActivity {
          */
         mSlidingUpPanelLayout.setDragView(mShowCommentsButton);
 
-        mCancelRecordingButton.setVisibility(View.VISIBLE);
 
-        mAdapter = new PhotoActivityAdapterNew(mOnActionListener);
+        mAdapter = new PhotoActivityAdapter(mOnActionListener);
         mRefreshRecyclerViewFragment.setAdapter(mAdapter, new RefreshRecyclerViewFragment.ServiceWrapper() {
             @Override
             public void executeService() {
+                if (mPhoto == null) return;
                 PhotosApi.comments(
                         mPhoto.getId(),
-                        mRefreshRecyclerViewFragment.getAppender(),
+                        new ApiListeners.OnItemsArrayLoadedListener() {
+                            @Override
+                            public void onLoaded(Result result, ArrayList<Model> items) {
+                                boolean isFromTop = mRefreshRecyclerViewFragment.getSinceId() != null && mRefreshRecyclerViewFragment.getMaxId() == null;
+                                if (result.isSucceeded() && items != null && isFromTop) {
+                                    mPhoto.setCommentsCount(mPhoto.getCommentsCount() + items.size());
+                                    refreshCommentCount();
+                                }
+                                mRefreshRecyclerViewFragment.getAppender().onLoaded(result, items);
+                            }
+                        },
                         mRefreshRecyclerViewFragment.getMaxId(),
                         mRefreshRecyclerViewFragment.getSinceId());
             }
         });
+        mRefreshRecyclerViewFragment.setIsLazyLoading(true);
 
 
         /**
          * initialize the recorder instance
          */
-        mRecorder = new Recorder(PhotoActivity.this, new Recorder.OnRecordingListener() {
+        Recorder.OnRecordingListener recorderListener = new Recorder.OnRecordingListener() {
             @Override
-            public void onUpdate(int amplitude) {
-                mAudioVisualizer.update(amplitude);
+            public void onUpdate(int amplitude, int elapsed) {
+                if (Build.VERSION.SDK_INT >= 18) return;
+                ((AudioVisualizer) mAudioVisualizer).update(amplitude);
+                mRecordDuration.setText(PhotosTalkUtils.getDurationFormatted(elapsed));
+            }
+
+            @Override
+            public void onUpdate(short[] audioData, int length, int timeElapsed) {
+                if (Build.VERSION.SDK_INT < 18) return;
+                ((WaveAudioVisualizer) mAudioVisualizer).update(audioData, length);
+                mRecordFlag.setVisibility(timeElapsed % 2 == 0 ? View.VISIBLE : View.INVISIBLE);
+                mRecordDuration.setText(PhotosTalkUtils.getDurationFormatted(timeElapsed));
             }
 
             @Override
             public void onMaxDurationReached() {
                 Notifications.showSnackbar(PhotoActivity.this, getString(R.string.recording_stopped_maximum_20_seconds));
-                mRecorderContainer.setVisibility(View.GONE);
+                showRecordDialog(false);
                 mRecorder.cancel();
             }
-        }, null);
+        };
+
+        MediaPlayer.OnCompletionListener completionListener = new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                mPlayStopRecordingButton.setImageResource(R.drawable.play_blue);
+            }
+        };
+
+        if (Build.VERSION.SDK_INT >= 18) {
+            mRecorder = new RecorderNewAPI(PhotoActivity.this, recorderListener, completionListener);
+        } else {
+            mRecorder = new RecorderOldAPI(PhotoActivity.this, recorderListener, completionListener);
+        }
+
 
         /**
-         * first get the photo from the internet
+         * fill the information of the current photo
          */
-        final String photoId = getIntent().getStringExtra(PHOTO_ID);//"56d5ba43db66470c2681ebd9";//
+        fillPhotoInfo();
 
-        mProgressDialog = Notifications.showLoadingDialog(this, getString(R.string.loading));
-        PhotosApi.get(photoId, new ApiListeners.OnItemLoadedListener() {
-            @Override
-            public void onLoaded(Result result, Model item) {
-                if (result.isSucceeded()) {
-                    mPhoto = (Photo) item;
+        /**
+         * move to the appropriate position in the view pager.
+         */
+        mViewPager.setCurrentItem(mCurrentFragmentId);
+    }
 
-                    /**
-                     * fill the photos fields
-                     */
-                    /**
-                     * the actual photo
-                     */
-                    loadPhoto();
+    private void fillPhotoInfo() {
+        mLiveTextView.setVisibility(mPhoto == null || !mPhoto.isLive() ? View.GONE : View.VISIBLE);
+        mHashTagsTextView.setText(mPhoto == null ? "" : mPhoto.getHashTagsConcatenated());
+        mLikesCount.setText(getResources().getQuantityString(R.plurals.d_likes, mPhoto == null ? 0 : mPhoto.getLikesCount(), mPhoto == null ? 0 : mPhoto.getLikesCount()));
+        refreshCommentCount();
+        mLikeButton.setCompoundDrawablesWithIntrinsicBounds(mPhoto == null || !mPhoto.isLiked() ? R.mipmap.ic_empty_heart : R.mipmap.ic_like_blue, 0, 0, 0);
+        mPlayStopButton.setVisibility(mPhoto == null || mPhoto.getAudioUrl().isEmpty() ? View.GONE : View.VISIBLE);
 
-
-                    mLiveTextView.setVisibility(mPhoto.isLive() ? View.VISIBLE : View.GONE);
-                    mHashTagsTextView.setText(mPhoto.getHashTagsConcatenated());
-                    mLikesCount.setText(getResources().getQuantityString(R.plurals.d_likes, mPhoto.getLikesCount(), mPhoto.getLikesCount()));
-                    refreshCommentCount();
-                    mLikeButton.setCompoundDrawablesWithIntrinsicBounds(mPhoto.isLiked() ? R.mipmap.ic_like_blue : R.mipmap.ic_empty_heart, 0, 0, 0);
-
-                    mPlayStopButton.setVisibility(mPhoto.getAudioUrl().isEmpty() ? View.GONE : View.VISIBLE);
-
-                    /**
-                     * load the comments
-                     */
-                    mRefreshRecyclerViewFragment.refreshItems(null, null);
-
-                } else {
-                    Notifications.showListAlertDialog(PhotoActivity.this, getString(R.string.error), result.getMessages());
-
-                }
-
-                mProgressDialog.dismiss();
-                mProgressDialog = null;
-            }
-        });
-
-
+        /**
+         * load the comments
+         */
+        mRefreshRecyclerViewFragment.refreshItems(null, null);
     }
 
     private void submitComment() {
+        if (mPhoto == null) return;
         final AlertDialog progressBar = Notifications.showLoadingDialog(this, getString(R.string.posting_comment));
         PhotosApi.comment(new File(mRecorder.getFileName()), mPhoto.getId(), mRecorder.getDurationFormatted(), new ApiListeners.OnActionExecutedListener() {
             @Override
@@ -691,8 +855,8 @@ public class PhotoActivity extends AppCompatActivity {
                 mRecorder.clean();
                 if (result.isSucceeded()) {
                     mRefreshRecyclerViewFragment.refreshItems(mRefreshRecyclerViewFragment.getFirstItemId(), null);
-                    mPhoto.setCommentsCount(mPhoto.getCommentsCount() + 1);
-                    refreshCommentCount();
+                    //mPhoto.setCommentsCount(mPhoto.getCommentsCount() + 1);
+                    //refreshCommentCount();
                     if (areCommentsShown()) return;
                     mSlidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                 } else {
@@ -702,14 +866,21 @@ public class PhotoActivity extends AppCompatActivity {
         });
     }
 
-    private void showRecordDialog() {
+    private void showRecordDialog(boolean show) {
+        if (mPhoto == null) return;
         /**
          * first check for the recording permission
          */
         if (!mArePermissionsGranted) {
             ActivityCompat.requestPermissions(PhotoActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_AUDIO_PERMISSION);
         } else {
-            mRecorderContainer.setVisibility(View.VISIBLE);
+            mRecorderContainer.setVisibility(show ? View.VISIBLE : View.GONE);
+            showRecordUI(false);
+            mFirstTimeToCheckHasRecorded = true;
+            if (!show) {
+                hidePostAndPlayRecordingButtons();
+                mRecorder.clean();
+            }
         }
     }
 
@@ -717,43 +888,59 @@ public class PhotoActivity extends AppCompatActivity {
         return mSlidingUpPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED;
     }
 
-    private void loadPhoto() {
-        new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... voids) {
-                try {
-                    String filename = "photo.jpg";
-                    URL photoURL = new URL(mPhoto.getImageUrl());
-                    HttpURLConnection connection = (HttpURLConnection) photoURL.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-
-                    InputStream is = connection.getInputStream();
-                    Bitmap bitmap = BitmapFactory.decodeStream(is);
-
-                    FileOutputStream fileOutputStream = new FileOutputStream(getCacheDir() + filename);
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 90, fileOutputStream);
-                    return filename;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(String filename) {
-                super.onPostExecute(filename);
-                if (filename == null) return;
-                mPhotoImageView.setImage(ImageSource.uri(getCacheDir() + filename));
-                mPhotoImageView.setMinimumDpi(10);
-            }
-        }.execute();
-
+    private void refreshCommentCount() {
+        mShowCommentsButton.setText(getResources().getQuantityString(R.plurals.d_comments, mPhoto == null ? 0 : mPhoto.getCommentsCount(), mPhoto == null ? 0 : mPhoto.getCommentsCount()));
+        mCommentsLayoutCommentCount.setText(getResources().getQuantityString(R.plurals.d_people_commented_on_this, mPhoto == null ? 0 : mPhoto.getCommentsCount(), mPhoto == null ? 0 : mPhoto.getCommentsCount()));
     }
 
-    private void refreshCommentCount() {
-        mShowCommentsButton.setText(getResources().getQuantityString(R.plurals.d_comments, mPhoto.getCommentsCount(), mPhoto.getCommentsCount()));
-        mCommentsLayoutCommentCount.setText(getResources().getQuantityString(R.plurals.d_people_commented_on_this, mPhoto.getCommentsCount(), mPhoto.getCommentsCount()));
+    private void hideShowDeleteOption() {
+        if (mPhoto == null || mMenu == null) return;
+        mMenu.getItem(0).setVisible(mPhoto.isAuthor());
+    }
+
+    private void showRecordUI(boolean record) {
+        if (!record) {
+            translateRecorderButtons(0);
+            mRecordIndicatorWrapper.animate().alpha(0.0f).setDuration(150).start();
+            mAudioVisualizer.setVisibility(View.INVISIBLE);
+
+            /**
+             * check if has recorded
+             */
+            if (mRecorder.hasRecorded() && mFirstTimeToCheckHasRecorded) {
+                mPlayStopRecordingButton.animate().translationX(-MiscUtils.convertDP2Pixel(66)).alpha(1.0f).setDuration(250).start();
+                mPostRecordedCommentButton.animate().translationX(MiscUtils.convertDP2Pixel(66)).alpha(1.0f).setDuration(250).start();
+
+                mFirstTimeToCheckHasRecorded = false;
+            } else {
+                mPlayStopRecordingButton.animate().scaleX(1.0f).scaleY(1.0f).setDuration(250).start();
+                mPostRecordedCommentButton.animate().scaleX(1.0f).scaleY(1.0f).setDuration(250).start();
+            }
+
+        } else {
+            translateRecorderButtons(-MiscUtils.convertDP2Pixel(38));
+            mRecordDuration.setText(PhotosTalkUtils.getDurationFormatted(0));
+            mRecordIndicatorWrapper.animate().alpha(1.0f).setDuration(150).start();
+            mAudioVisualizer.setVisibility(View.VISIBLE);
+
+            if (!mFirstTimeToCheckHasRecorded) {
+                mPlayStopRecordingButton.animate().scaleX(0.0f).scaleY(0.0f).setDuration(250).start();
+                mPostRecordedCommentButton.animate().scaleX(0.0f).scaleY(0.0f).setDuration(250).start();
+            }
+        }
+    }
+
+    private void hidePostAndPlayRecordingButtons() {
+        mPlayStopRecordingButton.setAlpha(0.0f);
+        mPlayStopRecordingButton.setTranslationX(0.0f);
+        mPostRecordedCommentButton.setAlpha(0.0f);
+        mPostRecordedCommentButton.setTranslationX(0.0f);
+    }
+
+    private void translateRecorderButtons(int dY) {
+        mRecordButton.animate().translationY(dY).setDuration(150).start();
+        mPlayStopRecordingButton.animate().translationY(dY).setDuration(150).start();
+        mPostRecordedCommentButton.animate().translationY(dY).setDuration(150).start();
     }
 
     @Override
@@ -768,4 +955,5 @@ public class PhotoActivity extends AppCompatActivity {
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
+
 }

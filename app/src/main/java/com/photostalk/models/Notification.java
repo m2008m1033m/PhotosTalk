@@ -14,11 +14,21 @@ import java.util.Date;
  */
 public class Notification extends Model {
 
+    public enum Type {
+        FOLLOW,
+        REQUEST,
+        COMMENT,
+        REQUEST_ACCEPTANCE,
+        UNKNOWN
+    }
+
     private UserModel mUser;
     private int mTypeId;
     private String mTypeName;
+    private Type mType;
     private boolean mSeen;
     private Date mNotificationDate;
+    private Photo mPhoto;
 
 
     public Notification(JSONObject jsonObject) {
@@ -28,6 +38,7 @@ public class Notification extends Model {
         setTypeName(MiscUtils.getString(jsonObject, "type_name", ""));
         setSeen(MiscUtils.getBoolean(jsonObject, "seen", false));
         setNotificationDateAsString(MiscUtils.getString(jsonObject, "notification_date", "1970-01-01"));
+
         try {
             mUser = new UserModel(jsonObject.getJSONObject("user"));
         } catch (JSONException e) {
@@ -35,6 +46,14 @@ public class Notification extends Model {
             mUser = new UserModel();
         }
 
+        if (mType == Type.COMMENT) {
+            try {
+                mPhoto = new Photo(jsonObject.getJSONObject("photo"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+                mPhoto = new Photo();
+            }
+        }
     }
 
 
@@ -54,12 +73,32 @@ public class Notification extends Model {
         return mUser;
     }
 
+    public Photo getPhoto() {
+        return mPhoto;
+    }
+
     public int getTypeId() {
         return mTypeId;
     }
 
     public void setTypeId(int typeId) {
         mTypeId = typeId;
+        switch (mTypeId) {
+            case 1:
+                mType = Type.FOLLOW;
+                break;
+            case 3:
+                mType = Type.REQUEST;
+                break;
+            case 4:
+                mType = Type.COMMENT;
+                break;
+            case 5:
+                mType = Type.REQUEST_ACCEPTANCE;
+                break;
+            default:
+                mType = Type.UNKNOWN;
+        }
     }
 
     public String getTypeName() {
@@ -68,6 +107,10 @@ public class Notification extends Model {
 
     public void setTypeName(String typeName) {
         mTypeName = typeName;
+    }
+
+    public Type getType() {
+        return mType;
     }
 
     public boolean isSeen() {

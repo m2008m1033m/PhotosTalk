@@ -149,26 +149,40 @@ public class FollowshipAndBlockagesActivity extends AppCompatActivity {
                                     Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
                             }
                         });
-                    } else if (user.isPrivate()) {
-                        //request
-                        UserApi.request(user.getId(), new ApiListeners.OnActionExecutedListener() {
-                            @Override
-                            public void onExecuted(Result result) {
-                                if (result.isSucceeded()) {
-                                    Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), true, false);
-                                    updateUser(user, true, false);
-                                } else
-                                    Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
-                            }
-                        });
+                    } else if (!user.isFollowRequestSent()) {
+                        if (user.isPrivate()) {
+                            //request
+                            UserApi.request(user.getId(), new ApiListeners.OnActionExecutedListener() {
+                                @Override
+                                public void onExecuted(Result result) {
+                                    if (result.isSucceeded()) {
+                                        Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), true, false);
+                                        updateUser(user, true, false);
+                                    } else
+                                        Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
+                                }
+                            });
+                        } else {
+                            //follow
+                            UserApi.follow(user.getId(), new ApiListeners.OnActionExecutedListener() {
+                                @Override
+                                public void onExecuted(Result result) {
+                                    if (result.isSucceeded()) {
+                                        Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), false, true);
+                                        updateUser(user, false, true);
+                                    } else
+                                        Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
+                                }
+                            });
+                        }
                     } else {
-                        //follow
-                        UserApi.follow(user.getId(), new ApiListeners.OnActionExecutedListener() {
+                        //cancel
+                        UserApi.cancel(user.getId(), new ApiListeners.OnActionExecutedListener() {
                             @Override
                             public void onExecuted(Result result) {
                                 if (result.isSucceeded()) {
-                                    Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), false, true);
-                                    updateUser(user, false, true);
+                                    Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), false, false);
+                                    updateUser(user, false, false);
                                 } else
                                     Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
                             }

@@ -223,6 +223,10 @@ public class UserApi {
         Stub.post("user/un-follow", listener, null, new RequestParams("id", id), "user_unfollow");
     }
 
+    public static void cancel(String followId, ApiListeners.OnActionExecutedListener listener) {
+        Stub.post("user/cancel-follow-request", listener, null, new RequestParams("followed_id", followId), "user_cancel_follow");
+    }
+
     public static void block(String id, ApiListeners.OnActionExecutedListener listener) {
         Stub.post("user/block", listener, null, new RequestParams("id", id), "user_block");
     }

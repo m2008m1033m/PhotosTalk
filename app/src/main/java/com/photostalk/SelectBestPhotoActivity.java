@@ -57,9 +57,9 @@ public class SelectBestPhotoActivity extends AppCompatActivity {
             }
         };
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Broadcasting.TERMINATE_CAMERA);
+        intentFilter.addAction(Broadcasting.PHOTO_POSTED);
         intentFilter.addAction(Broadcasting.LOGOUT);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Broadcasting.TERMINATE_CAMERA));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Broadcasting.PHOTO_POSTED));
     }
 
 

@@ -23,6 +23,7 @@ public class SplashActivity extends AppCompatActivity {
             public void run() {
                 if (User.getInstance().isLoggedIn()) {
                     startActivity(new Intent(SplashActivity.this, HomeActivity.class));
+                    startActivity(new Intent(SplashActivity.this, CameraActivity.class));
                 } else {
                     startActivity(new Intent(SplashActivity.this, LoginActivity.class));
                 }

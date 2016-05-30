@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -16,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.photostalk.adapters.StoryActivityAdapter;
 import com.photostalk.core.User;
@@ -29,9 +31,7 @@ import com.photostalk.utils.Notifications;
 import com.photostalk.utils.Player;
 import com.squareup.picasso.Picasso;
 
-/**
- * Created by mohammed on 3/4/16.
- */
+
 public class StoryActivity extends AppCompatActivity {
     public static final String STORY_ID = "story_id";
 
@@ -222,7 +222,10 @@ public class StoryActivity extends AppCompatActivity {
             @Override
             public void onPhotoClicked(int position) {
                 Intent i = new Intent(StoryActivity.this, PhotoActivity.class);
-                i.putExtra(PhotoActivity.PHOTO_ID, mStory.getPhotos().get(position).getId());
+                i.putExtra(PhotoActivity.POSITION_IN_STORY, position);
+                Bundle b = new Bundle();
+                b.putSerializable(PhotoActivity.STORY, mStory);
+                i.putExtras(b);
                 startActivity(i);
             }
         });

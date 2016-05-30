@@ -32,6 +32,16 @@ import com.photostalk.utils.Notifications;
  */
 public class ProfileActivity extends AppCompatActivity {
 
+    private final static int FOLLOW = 0;
+    private final static int EDIT = 1;
+    private final static int CHANGE_PASSWORD = 2;
+    private final static int REPORT = 3;
+    private final static int BLOCK = 4;
+    private final static int BLOCKED_USERS = 5;
+    private final static int LOGOUT = 6;
+    private final static int UNFOLLOW = 7;
+
+
     public final static String USER_ID = "user_id";
 
     private AlertDialog mProgressDialog;
@@ -126,6 +136,60 @@ public class ProfileActivity extends AppCompatActivity {
                     });
                 }
                 return true;
+            case R.id.unfollow:
+                UserApi.unfollow(mUser.getId(), new ApiListeners.OnActionExecutedListener() {
+                    @Override
+                    public void onExecuted(Result result) {
+                        if (result.isSucceeded()) {
+                            mUser.setIsFollowingUser(false);
+                            Notifications.showSnackbar(ProfileActivity.this, getString(R.string.you_have_unfollowed_s_successully, mUser.getName()));
+                            mMenu.getItem(UNFOLLOW).setVisible(false);
+                            Broadcasting.sendFollow(ProfileActivity.this, mUser.getId(), false, false);
+                        } else {
+                            Notifications.showSnackbar(ProfileActivity.this, result.getMessages().get(0));
+                        }
+                    }
+                });
+                return true;
+            case R.id.follow:
+                if (mUser.isFollowingUser()) return true;
+                if (mUser.isPrivate()) {
+                    // send a follow request
+                    UserApi.request(mUser.getId(), new ApiListeners.OnActionExecutedListener() {
+                        @Override
+                        public void onExecuted(Result result) {
+                            if (result.isSucceeded()) {
+                                mUser.setIsFollowingUser(false);
+                                mUser.setIsFollowRequestSent(true);
+                                refreshFollowUnfollowActionButtons();
+                                Notifications.showSnackbar(ProfileActivity.this, getString(R.string.a_request_has_been_sent_to_s, mUser.getName()));
+                                Broadcasting.sendFollow(ProfileActivity.this, mUser.getId(), true, false);
+                            } else {
+                                Notifications.showSnackbar(ProfileActivity.this, result.getMessages().get(0));
+                            }
+                        }
+                    });
+
+                } else {
+                    // just follow the user
+                    UserApi.follow(mUser.getId(), new ApiListeners.OnActionExecutedListener() {
+                        @Override
+                        public void onExecuted(Result result) {
+                            if (result.isSucceeded()) {
+                                mUser.setIsFollowingUser(true);
+                                mUser.setIsFollowRequestSent(false);
+                                refreshFollowUnfollowActionButtons();
+                                Notifications.showSnackbar(ProfileActivity.this, getString(R.string.you_have_followed_s_successfully, mUser.getName()));
+                                Broadcasting.sendFollow(ProfileActivity.this, mUser.getId(), false, true);
+                            } else {
+                                Notifications.showSnackbar(ProfileActivity.this, result.getMessages().get(0));
+                            }
+                        }
+                    });
+                }
+
+
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -159,15 +223,22 @@ public class ProfileActivity extends AppCompatActivity {
                     String userId = intent.getStringExtra("user_id");
                     if (!userId.equals(mUser.getId())) return;
                     boolean block = intent.getBooleanExtra("block", mUser.isBlocked());
-                    mMenu.getItem(3).setTitle(block ? R.string.unblock : R.string.block);
+                    mMenu.getItem(BLOCK).setTitle(block ? R.string.unblock : R.string.block);
                 } else if (intent.getAction().equals(Broadcasting.LOGOUT)) {
                     finish();
+                } else if (intent.getAction().equals(Broadcasting.FOLLOW)) {
+                    boolean isFollowing = intent.getBooleanExtra("follow", false);
+                    boolean isFollowRequestSent = intent.getBooleanExtra("request", false);
+                    mUser.setIsFollowingUser(isFollowing);
+                    mUser.setIsFollowRequestSent(isFollowRequestSent);
+                    refreshFollowUnfollowActionButtons();
                 }
             }
         };
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.BLOCK);
         intentFilter.addAction(Broadcasting.LOGOUT);
+        intentFilter.addAction(Broadcasting.FOLLOW);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -192,6 +263,9 @@ public class ProfileActivity extends AppCompatActivity {
                     profileFragment.setToolbarVisible(true);
                     profileFragment.fillFields(mUser);
 
+                    // hide the the unfollow option in menu if the local user is following the user.
+                    refreshFollowUnfollowActionButtons();
+
                 } else {
                     Notifications.showListAlertDialog(ProfileActivity.this, getString(R.string.error), result.getMessages()).setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
@@ -208,14 +282,23 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void refreshMenuItems() {
         if (mIsOtherUser) {
-            mMenu.getItem(0).setVisible(false);
-            mMenu.getItem(1).setVisible(false);
-            mMenu.getItem(4).setVisible(false);
-            mMenu.getItem(5).setVisible(false);
+            mMenu.getItem(EDIT).setVisible(false);
+            mMenu.getItem(CHANGE_PASSWORD).setVisible(false);
+            mMenu.getItem(BLOCKED_USERS).setVisible(false);
+            mMenu.getItem(LOGOUT).setVisible(false);
+            refreshFollowUnfollowActionButtons();
         } else {
-            mMenu.getItem(2).setVisible(false);
-            mMenu.getItem(3).setVisible(false);
+            mMenu.getItem(REPORT).setVisible(false);
+            mMenu.getItem(BLOCK).setVisible(false);
+            mMenu.getItem(UNFOLLOW).setVisible(false);
+            mMenu.getItem(FOLLOW).setVisible(false);
         }
+    }
+
+    private void refreshFollowUnfollowActionButtons() {
+        if (mUser == null || mMenu == null) return;
+        mMenu.getItem(UNFOLLOW).setVisible(mUser.isFollowingUser());
+        mMenu.getItem(FOLLOW).setVisible(!mUser.isFollowingUser() && !mUser.isFollowRequestSent());
     }
 
     private void showChangePasswordDialog() {

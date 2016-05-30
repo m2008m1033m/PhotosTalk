@@ -1,9 +1,11 @@
 package com.photostalk.models;
 
+import java.io.Serializable;
+
 /**
  * Created by mohammed on 2/18/16.
  */
-public abstract class Model {
+public abstract class Model implements Serializable {
     protected String mId;
 
     public String getId() {

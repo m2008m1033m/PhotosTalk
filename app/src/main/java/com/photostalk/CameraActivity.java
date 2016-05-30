@@ -124,7 +124,7 @@ public class CameraActivity extends AppCompatActivity {
         };
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.LOGOUT);
-        intentFilter.addAction(Broadcasting.TERMINATE_CAMERA);
+        intentFilter.addAction(Broadcasting.PHOTO_POSTED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 

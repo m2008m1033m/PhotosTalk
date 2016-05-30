@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="main">#2c98f0</color>
+    <color name="main">#2196f3</color>
     <color name="secondary">#2278d0</color>
     <color name="light">#d8e9f4</color>
 
@@ -29,6 +29,8 @@
     <color name="color_filter_5">#303975</color>
     <color name="color_filter_6">#6c3970</color>
     <color name="color_filter_7">#a44a5f</color>
+
+    <color name="amaro_radial_gradient">#531b25</color>
 
     <array name="filter_colors">
         <item>@color/color_filter_1</item>

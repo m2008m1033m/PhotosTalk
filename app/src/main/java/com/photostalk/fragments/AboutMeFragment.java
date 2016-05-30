@@ -63,7 +63,7 @@ public class AboutMeFragment extends Fragment {
     public void refresh(UserModel user) {
         if (user == null) return;
         mUser = user;
-        mAboutMeTextView.setText(mUser.getBio());
+        mAboutMeTextView.setText(mUser.getBio() + "\n\n" + mUser.getWebsite());
         mStoriesCount.setText(String.valueOf(mUser.getStoriesCount()));
         //mFollowersCountTextView.setText(String.valueOf(mUser.getFollowersCount()));
         mFollowingCountTextView.setText(String.valueOf(mUser.getFollowingCount()));
@@ -90,7 +90,6 @@ public class AboutMeFragment extends Fragment {
                                 if (result.isSucceeded()) {
                                     Broadcasting.sendFollow(getActivity(), mUser.getId(), false, false);
                                     mUser.setIsFollowingUser(false);
-                                    //mUser.setFollowersCount(mUser.getFollowersCount() - 1);
                                     refreshUi();
                                 } else
                                     Notifications.showSnackbar(getActivity(), result.getMessages().get(0));
@@ -119,7 +118,6 @@ public class AboutMeFragment extends Fragment {
                                     if (result.isSucceeded()) {
                                         Broadcasting.sendFollow(getActivity(), mUser.getId(), false, true);
                                         mUser.setIsFollowingUser(true);
-                                        //mUser.setFollowersCount(mUser.getFollowersCount() + 1);
                                         refreshUi();
                                     } else
                                         Notifications.showSnackbar(getActivity(), result.getMessages().get(0));
@@ -127,6 +125,19 @@ public class AboutMeFragment extends Fragment {
                             });
                         }
 
+                    } else {
+                        // cancel request
+                        UserApi.cancel(mUser.getId(), new ApiListeners.OnActionExecutedListener() {
+                            @Override
+                            public void onExecuted(Result result) {
+                                if (result.isSucceeded()) {
+                                    Broadcasting.sendFollow(getActivity(), mUser.getId(), false, false);
+                                    mFollowButton.setText(R.string.follow);
+                                    mUser.setIsFollowRequestSent(false);
+                                } else
+                                    Notifications.showSnackbar(getActivity(), result.getMessages().get(0));
+                            }
+                        });
                     }
 
                 }
@@ -159,7 +170,7 @@ public class AboutMeFragment extends Fragment {
             mFollowButton.setText(mUser.isFollowingUser() ? R.string.following : mUser.isFollowRequestSent() ? R.string.requested : R.string.follow);
             mFollowButton.setTextColor(ContextCompat.getColor(getActivity(), mUser.isFollowingUser() ? R.color.white : R.color.main));
             mFollowButton.setBackgroundResource(mUser.isFollowingUser() ? R.drawable.main_button : R.drawable.bordered_button_main);
-            if (mUser.isFollowRequestSent()) mFollowButton.setEnabled(false);
+            //if (mUser.isFollowRequestSent()) mFollowButton.setEnabled(false);
         }
         mFollowersCountTextView.setText(String.valueOf(mUser.getFollowersCount()));
     }

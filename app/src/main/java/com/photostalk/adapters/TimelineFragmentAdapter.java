@@ -117,11 +117,13 @@ public class TimelineFragmentAdapter extends RefreshAdapter {
 
         UserModel user = timeline.getStory().getUser();
         ((ViewHolder) holder).mUserName.setText(user.getName());
-        if (!timeline.getStory().getUser().isFollowRequestSent() && !User.getInstance().getId().equals(user.getId())) {
+        ((ViewHolder) holder).mFollowButton.setVisibility(View.GONE);
+        /*if (!timeline.getStory().getUser().isFollowRequestSent() && !User.getInstance().getId().equals(user.getId())) {
+            ((ViewHolder) holder).mFollowButton.setVisibility(View.VISIBLE);
             ((ViewHolder) holder).mFollowButton.setImageResource(user.isFollowingUser() ? R.drawable.unfollow : R.drawable.follow);
         } else {
             ((ViewHolder) holder).mFollowButton.setVisibility(View.GONE);
-        }
+        }*/
     }
 
     @Override

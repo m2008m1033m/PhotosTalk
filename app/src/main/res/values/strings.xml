@@ -139,6 +139,16 @@
     <string name="s_commented">%s Commented</string>
     <string name="play_stop_audio">Play/Stop Audio</string>
     <string name="post_to_group">Post to Group</string>
+    <string name="record_audio">Record Audio</string>
+    <string name="error_loading_the_photos">Error loading the photos</string>
+    <string name="add_filters">Add Filters</string>
+    <string name="add_hashtags">Add Hashtags</string>
+    <string name="proceed">proceed</string>
+    <string name="unfollow">Unfollow</string>
+    <string name="you_have_unfollowed_s_successully">You have unfollowed %s successfully</string>
+    <string name="a_request_has_been_sent_to_s">A request has been sent to %s</string>
+    <string name="you_have_followed_s_successfully">You have followed %s successfully</string>
+    <string name="s_has_commented_on_your_photo">%s has commented on your photo</string>
 
     <plurals name="d_people_commented_on_this">
         <item quantity="one">%d person commented on this.</item>

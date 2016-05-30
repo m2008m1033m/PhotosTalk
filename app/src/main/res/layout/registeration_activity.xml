@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/full_name"
-            android:text="Alaa Abedlhaq"
+            android:text="Mohammed Nasser"
             android:inputType="textPersonName"/>
     </android.support.design.widget.TextInputLayout>
 
@@ -30,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/username"
-            android:text="alaa007"
+            android:text="m2008m1033m"
             android:inputType="textPersonName"/>
     </android.support.design.widget.TextInputLayout>
 
@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/email"
-            android:text="alaa@techspaceship.com"
+            android:text="m2008m1033m@sharklasers.com"
             android:inputType="textEmailAddress"/>
     </android.support.design.widget.TextInputLayout>
 

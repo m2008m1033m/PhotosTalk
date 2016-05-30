@@ -36,6 +36,8 @@ public class UserModel extends Model {
         setName(MiscUtils.getString(jsonObject, "name", ""));
         setPhoto(MiscUtils.getString(jsonObject, "photo", ""));
         setBio(MiscUtils.getString(jsonObject, "bio", ""));
+        setWebsite(MiscUtils.getString(jsonObject, "website", ""));
+        setMobile(MiscUtils.getString(jsonObject, "mobile", ""));
         setGender(MiscUtils.getString(jsonObject, "gender", ""));
         setIsPrivate(MiscUtils.getBoolean(jsonObject, "private", false));
         setIsVerified(MiscUtils.getBoolean(jsonObject, "verified", false));

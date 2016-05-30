@@ -84,6 +84,7 @@ public class LoginActivity extends AppCompatActivity {
                         public void onExecuted(Result result) {
                             if (result.isSucceeded()) {
                                 startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                                startActivity(new Intent(LoginActivity.this, CameraActivity.class));
                                 finish();
                             } else
                                 Notifications.showSnackbar(LoginActivity.this, result.getMessages().get(0));

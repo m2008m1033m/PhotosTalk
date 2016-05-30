@@ -76,16 +76,6 @@ public class HomeActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         setTitle(R.string.app_name);
         android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-        View v;
-        if (actionBar != null) {
-            //v = findViewById(android.R.id.home);
-
-            //actionBar.setHomeButtonEnabled(true);
-            //actionBar.setDisplayHomeAsUpEnabled(true);
-            //actionBar.setHomeAsUpIndicator(R.mipmap.ic_menu_white_24dp);
-
-            //int i = 1 + 9;
-        }
 
         init();
     }
@@ -163,6 +153,10 @@ public class HomeActivity extends AppCompatActivity {
                     refreshNavigationView();
                     mTimelineAdapter.updateUserPhoto();
                     mTrendingFragment.updateUserPhoto();
+                } else if (intent.getAction().equals(Broadcasting.PHOTO_POSTED)) {
+                    mTimelineAdapter.getItems().clear();
+                    mTimelineAdapter.notifyDataSetChanged();
+                    mTimelineFragment.refreshItems(null, null);
                 }
             }
         };
@@ -171,6 +165,7 @@ public class HomeActivity extends AppCompatActivity {
         intentFilter.addAction(Broadcasting.STORY_DELETE);
         intentFilter.addAction(Broadcasting.LOGOUT);
         intentFilter.addAction(Broadcasting.PROFILE_UPDATED);
+        intentFilter.addAction(Broadcasting.PHOTO_POSTED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -307,6 +302,7 @@ public class HomeActivity extends AppCompatActivity {
                 mTimelineFragment.refreshItems(null, null);
             }
         };
+        mTimelineFragment.setIsLazyLoading(true);
     }
 
     private void setupMyStoriesFragment() {

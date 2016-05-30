@@ -2,6 +2,7 @@ package com.photostalk;
 
 import android.app.Application;
 import android.content.Context;
+import android.support.multidex.MultiDexApplication;
 
 import com.photostalk.core.User;
 
@@ -19,7 +20,7 @@ import org.acra.annotation.ReportsCrashes;
         resToastText = R.string.a_report_has_been_sent_successfully)
 
 
-public class PhotosTalkApplication extends Application {
+public class PhotosTalkApplication extends MultiDexApplication {
     private static Context mContext;
 
 

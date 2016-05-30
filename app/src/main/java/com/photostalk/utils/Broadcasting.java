@@ -13,7 +13,7 @@ public class Broadcasting {
     public static final String BLOCK = "block";
     public static final String STORY_DELETE = "story_delete";
     public static final String PHOTO_DELETE = "photo_delete";
-    public static final String TERMINATE_CAMERA = "terminate_camera";
+    public static final String PHOTO_POSTED = "terminate_camera";
     public static final String LOGOUT = "logout";
     public static final String COMMENT_DELETE = "comment_delete";
     public static final String PROFILE_UPDATED = "profile_updated";
@@ -47,8 +47,8 @@ public class Broadcasting {
         LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
     }
 
-    public static void sendTerminatCamera(Activity activity) {
-        Intent intent = new Intent(TERMINATE_CAMERA);
+    public static void sendPhotoPosted(Activity activity) {
+        Intent intent = new Intent(PHOTO_POSTED);
         LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
     }
 
