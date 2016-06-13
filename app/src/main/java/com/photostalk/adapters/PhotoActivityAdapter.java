@@ -43,7 +43,7 @@ public class PhotoActivityAdapter extends RefreshAdapter {
 
 
     /**
-     * A ViewHolderTrending for the comment view
+     * A ViewHolder for the comment view
      */
     class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -145,10 +145,16 @@ public class PhotoActivityAdapter extends RefreshAdapter {
         /**
          * load the user's photo
          */
+
         if (!comment.getUser().getPhoto().equals(""))
             Picasso.with(PhotosTalkApplication.getContext())
                     .load(comment.getUser().getPhoto())
                     .into(((ViewHolder) holder).mPhoto);
+        else
+            Picasso.with(PhotosTalkApplication.getContext())
+                    .load(R.drawable.no_avatar)
+                    .into(((ViewHolder) holder).mPhoto);
+
     }
 
     @Override

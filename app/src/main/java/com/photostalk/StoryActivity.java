@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -17,7 +16,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.photostalk.adapters.StoryActivityAdapter;
 import com.photostalk.core.User;
@@ -226,6 +224,14 @@ public class StoryActivity extends AppCompatActivity {
                 Bundle b = new Bundle();
                 b.putSerializable(PhotoActivity.STORY, mStory);
                 i.putExtras(b);
+                startActivity(i);
+            }
+
+            @Override
+            public void onHashtagClicked(String hashtag) {
+                Intent i = new Intent(StoryActivity.this, SearchActivity.class);
+                i.putExtra(SearchActivity.SEARCH_TERM, hashtag);
+                i.putExtra(SearchActivity.SEARCH_TYPE, SearchActivity.SEARCH_TYPE_STORY);
                 startActivity(i);
             }
         });

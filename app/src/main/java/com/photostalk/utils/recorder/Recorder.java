@@ -56,6 +56,13 @@ public abstract class Recorder {
         return mFilename;
     }
 
+    public String getFileNameIfRecorded() {
+        if (hasRecorded())
+            return mFilename;
+        else
+            return null;
+    }
+
     public int getDuration() {
         return loadMediaPlayer().getDuration();
     }

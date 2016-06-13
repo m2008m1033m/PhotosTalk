@@ -16,6 +16,8 @@ public class UserModel extends Model {
     private String mBio;
     private String mGender;
     private String mMobile;
+    private String mCountry; //id
+    private String mCity;
     private boolean mIsPrivate;
     private boolean mIsVerified;
     private int mFollowersCount;
@@ -38,6 +40,8 @@ public class UserModel extends Model {
         setBio(MiscUtils.getString(jsonObject, "bio", ""));
         setWebsite(MiscUtils.getString(jsonObject, "website", ""));
         setMobile(MiscUtils.getString(jsonObject, "mobile", ""));
+        setCountry(MiscUtils.getString(jsonObject, "country", ""));
+        setCity(MiscUtils.getString(jsonObject, "city", ""));
         setGender(MiscUtils.getString(jsonObject, "gender", ""));
         setIsPrivate(MiscUtils.getBoolean(jsonObject, "private", false));
         setIsVerified(MiscUtils.getBoolean(jsonObject, "verified", false));
@@ -112,6 +116,22 @@ public class UserModel extends Model {
 
     public void setMobile(String mobile) {
         mMobile = mobile;
+    }
+
+    public String getCountry() {
+        return mCountry;
+    }
+
+    public void setCountry(String country) {
+        mCountry = country;
+    }
+
+    public String getCity() {
+        return mCity;
+    }
+
+    public void setCity(String city) {
+        mCity = city;
     }
 
     public boolean isPrivate() {

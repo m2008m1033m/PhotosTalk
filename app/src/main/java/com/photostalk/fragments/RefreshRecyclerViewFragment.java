@@ -239,4 +239,5 @@ public class RefreshRecyclerViewFragment extends Fragment {
         mIsRefreshing = refresh;
         mSwipeRefreshLayout.post(mRefreshRunnable);
     }
+
 }

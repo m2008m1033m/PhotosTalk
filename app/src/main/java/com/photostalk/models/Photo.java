@@ -23,6 +23,9 @@ public class Photo extends Model {
 
     private String mDescription;
     private String mImageUrl;
+    private String mImageBigUrl;
+    private String mImageXlUrl;
+    private String mImageOriginalUrl;
     private String mAudioUrl;
     private String mAudioTime;
     private boolean mIsLive;
@@ -43,6 +46,9 @@ public class Photo extends Model {
         setId(MiscUtils.getString(jsonObject, "id", ""));
         setDescription(MiscUtils.getString(jsonObject, "description", ""));
         setImageUrl(MiscUtils.getString(jsonObject, "image", ""));
+        setImageBigUrl(MiscUtils.getString(jsonObject, "image_big", ""));
+        setImageXlUrl(MiscUtils.getString(jsonObject, "image_xl", ""));
+        setImageOriginalUrl(MiscUtils.getString(jsonObject, "image_original", ""));
         setAudioUrl(MiscUtils.getString(jsonObject, "audio", ""));
         setAudioTime(MiscUtils.getString(jsonObject, "audio_time", ""));
         setIsLive(MiscUtils.getString(jsonObject, "is_live", "").equals("1"));
@@ -109,6 +115,30 @@ public class Photo extends Model {
 
     public void setImageUrl(String imageUrl) {
         mImageUrl = imageUrl;
+    }
+
+    public String getImageBigUrl() {
+        return mImageBigUrl;
+    }
+
+    public void setImageBigUrl(String imageBigUrl) {
+        mImageBigUrl = imageBigUrl;
+    }
+
+    public String getImageXlUrl() {
+        return mImageXlUrl;
+    }
+
+    public void setImageXlUrl(String imageXlUrl) {
+        mImageXlUrl = imageXlUrl;
+    }
+
+    public String getImageOriginalUrl() {
+        return mImageOriginalUrl;
+    }
+
+    public void setImageOriginalUrl(String imageOriginalUrl) {
+        mImageOriginalUrl = imageOriginalUrl;
     }
 
     public String getAudioUrl() {

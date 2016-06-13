@@ -251,7 +251,7 @@ public class UserApi {
         Stub.post("user/update-privacy", listener, null, new RequestParams("private", isPrivate), "make_private");
     }
 
-    public static void update(String name, File photo, String bio, String website, String mobile, String gender, ApiListeners.OnItemLoadedListener listener) {
+    public static void update(String name, File photo, String bio, String website, String mobile, String gender, String countryId, String city, ApiListeners.OnItemLoadedListener listener) {
         try {
             User u = User.getInstance();
             RequestParams params = new RequestParams();
@@ -263,6 +263,8 @@ public class UserApi {
             params.put("mobile", mobile);
             if (gender != null) params.put("gender", gender);
             params.put("email", u.getEmail());
+            params.put("country_id", countryId);
+            params.put("city", city);
             Stub.post("user/update-profile", listener, new Stub.ModelParser() {
                 @Override
                 Model parseItem(JSONObject jsonObject) throws JSONException {

@@ -69,7 +69,7 @@ public class RecordTagFilterActivity extends AppCompatActivity {
             case android.R.id.home:
                 finish();
                 return true;
-            case R.id.proceed:
+            case R.id.hashtag:
 
                 /**
                  * first save the filtered image

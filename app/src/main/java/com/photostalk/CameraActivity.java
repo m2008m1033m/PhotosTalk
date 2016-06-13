@@ -156,9 +156,9 @@ public class CameraActivity extends AppCompatActivity {
                     if (dir.isDirectory()) {
                         for (String file : dir.list()) {
                             if (file.endsWith("jpg")) {
-                                Intent i = new Intent(CameraActivity.this, RecordTagFilterActivity.class);
-                                i.putExtra(RecordTagFilterActivity.PHOTO_PATH, dirName + File.separator + file);
-                                i.putExtra(RecordTagFilterActivity.IS_LIVE, true);
+                                Intent i = new Intent(CameraActivity.this, RecordTagFilterActivityNew.class);
+                                i.putExtra(RecordTagFilterActivityNew.PHOTO_PATH, dirName + File.separator + file);
+                                i.putExtra(RecordTagFilterActivityNew.IS_LIVE, true);
                                 startActivity(i);
                                 break;
                             }
@@ -475,9 +475,9 @@ public class CameraActivity extends AppCompatActivity {
 
     private void goToRecordFilterHashtagActivity(String photoPath) {
         if (photoPath != null) {
-            Intent i = new Intent(this, RecordTagFilterActivity.class);
-            i.putExtra(RecordTagFilterActivity.PHOTO_PATH, photoPath);
-            i.putExtra(RecordTagFilterActivity.IS_LIVE, true);
+            Intent i = new Intent(this, RecordTagFilterActivityNew.class);
+            i.putExtra(RecordTagFilterActivityNew.PHOTO_PATH, photoPath);
+            i.putExtra(RecordTagFilterActivityNew.IS_LIVE, true);
             startActivity(i);
         }
     }

@@ -55,6 +55,35 @@ public class PhotoFragment extends Fragment {
         mPhotoImageView = ((SubsamplingScaleImageView) mView.findViewById(R.id.photo));
         mProgressBar = ((ProgressBar) mView.findViewById(R.id.progress));
         mSwipeRefreshLayout = ((SwipeRefreshLayout) mView.findViewById(R.id.wrapper));
+
+
+        mPhotoImageView.setOnImageEventListener(new SubsamplingScaleImageView.OnImageEventListener() {
+            @Override
+            public void onReady() {
+                mProgressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onImageLoaded() {
+
+            }
+
+            @Override
+            public void onPreviewLoadError(Exception e) {
+
+            }
+
+            @Override
+            public void onImageLoadError(Exception e) {
+
+            }
+
+            @Override
+            public void onTileLoadError(Exception e) {
+
+            }
+        });
+
         return mView;
     }
 
@@ -110,14 +139,15 @@ public class PhotoFragment extends Fragment {
     }
 
     private void loadPhoto() {
+        mProgressBar.setVisibility(View.VISIBLE);
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
                 try {
-                    String url = mPhoto.getImageUrl();
+                    String url = mPhoto.getImageOriginalUrl();
                     String[] bits = url.split("/");
                     String filename = bits[bits.length - 1];
-                    URL photoURL = new URL(mPhoto.getImageUrl());
+                    URL photoURL = new URL(url);
                     HttpURLConnection connection = (HttpURLConnection) photoURL.openConnection();
                     connection.setDoInput(true);
                     connection.connect();
@@ -140,7 +170,6 @@ public class PhotoFragment extends Fragment {
                 if (filename == null) return;
                 mPhotoImageView.setImage(ImageSource.uri(getActivity().getCacheDir() + filename));
                 mPhotoImageView.setMinimumDpi(10);
-                mProgressBar.setVisibility(View.GONE);
             }
         }.execute();
 

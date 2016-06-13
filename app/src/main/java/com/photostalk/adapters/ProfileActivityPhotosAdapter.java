@@ -2,6 +2,7 @@ package com.photostalk.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -12,6 +13,7 @@ import com.bumptech.glide.Glide;
 import com.photostalk.PhotosTalkApplication;
 import com.photostalk.R;
 import com.photostalk.models.Photo;
+import com.photostalk.utils.MiscUtils;
 
 import java.util.ArrayList;
 
@@ -24,6 +26,8 @@ public class ProfileActivityPhotosAdapter extends RefreshAdapter {
         void onPlayStopButtonClicked(int position);
 
         void onPhotoClicked(int position);
+
+        void onHashtagClicked(String hashtag);
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -78,6 +82,17 @@ public class ProfileActivityPhotosAdapter extends RefreshAdapter {
             @Override
             public void onClick(View view) {
                 mOnActionListener.onPlayStopButtonClicked(viewHolder.mPosition);
+            }
+        });
+
+        viewHolder.mHashTagsTextView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                String hashtag = MiscUtils.getWordFromCharPosition(viewHolder.mHashTagsTextView.getOffsetForPosition(motionEvent.getX(), motionEvent.getY()), viewHolder.mHashTagsTextView.getText().toString());
+                if (hashtag == null) return true;
+                if (hashtag.startsWith("#")) hashtag = hashtag.substring(1);
+                mOnActionListener.onHashtagClicked(hashtag);
+                return false;
             }
         });
 

@@ -67,7 +67,8 @@ public class Communicator {
         handler = wrapHandler(handler, tag);
         url = (url.startsWith("http")) ? url : getAbsoluteUrl(url);
         Log.d("Communicator", "The url is: " + url);
-        Log.d("Communicator", "The params are: " + requestParams.toString());
+        if (requestParams != null)
+            Log.d("Communicator", "The params are: " + requestParams.toString());
 
         mAsyncHttpClient.setTimeout(TIME_OUT);
         mAsyncHttpClient.get(mContext, url, headers, requestParams, handler).setTag(tag);
@@ -86,7 +87,8 @@ public class Communicator {
         handler = wrapHandler(handler, tag);
         url = (url.startsWith("http")) ? url : getAbsoluteUrl(url);
         Log.d("Communicator", "The url is: " + url);
-        Log.d("Communicator", "The params are: " + requestParams.toString());
+        if (requestParams != null)
+            Log.d("Communicator", "The params are: " + requestParams.toString());
 
         mAsyncHttpClient.setTimeout(TIME_OUT);
         mAsyncHttpClient.post(mContext, url, headers, requestParams, null, handler).setTag(tag);

@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 import com.photostalk.PhotoActivity;
 import com.photostalk.R;
+import com.photostalk.SearchActivity;
 import com.photostalk.StoryActivity;
 import com.photostalk.adapters.ProfileActivityPhotosAdapter;
 import com.photostalk.adapters.ProfileActivityStoriesAdapter;
@@ -291,6 +292,14 @@ public class ProfileFragment extends Fragment {
                         Photo photo = ((Photo) mPhotosAdapter.getItems().get(position));
                         Intent i = new Intent(getActivity(), PhotoActivity.class);
                         i.putExtra(PhotoActivity.PHOTO_ID, photo.getId());
+                        startActivity(i);
+                    }
+
+                    @Override
+                    public void onHashtagClicked(String hashtag) {
+                        Intent i = new Intent(getActivity(), SearchActivity.class);
+                        i.putExtra(SearchActivity.SEARCH_TERM, hashtag);
+                        i.putExtra(SearchActivity.SEARCH_TYPE, SearchActivity.SEARCH_TYPE_STORY);
                         startActivity(i);
                     }
                 });

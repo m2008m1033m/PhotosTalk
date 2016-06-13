@@ -14,6 +14,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -21,11 +22,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 
 import com.photostalk.core.User;
+import com.photostalk.models.Country;
 import com.photostalk.models.Model;
 import com.photostalk.models.UserModel;
 import com.photostalk.services.Result;
+import com.photostalk.services.SettingsAPI;
 import com.photostalk.services.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
@@ -34,6 +38,7 @@ import com.soundcloud.android.crop.Crop;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Created by mohammed on 3/6/16.
@@ -53,11 +58,19 @@ public class UpdateUserActivity extends AppCompatActivity {
     private ImageView mPhoto;
     private CheckBox mPrivate;
     private Button mUpdateButton;
+    private Spinner mCountries;
+    private EditText mCity;
+
+    private AlertDialog mProgressDialog;
 
     private BroadcastReceiver mBroadcastReceiver;
 
     private UserModel mUser;
     private String mPhotoPath = null;
+
+    private ArrayList<String> mCountriesNames = new ArrayList<>();
+    private ArrayList<String> mCountriesIds = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +113,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 
     private void init() {
         initReferences();
-        fillFields();
+        loadCountries();
     }
 
     private void initReferences() {
@@ -114,13 +127,61 @@ public class UpdateUserActivity extends AppCompatActivity {
         mPhoto = ((ImageView) findViewById(R.id.photo));
         mPrivate = ((CheckBox) findViewById(R.id.make_private));
         mUpdateButton = ((Button) findViewById(R.id.update_button));
+        mCountries = ((Spinner) findViewById(R.id.countries_spinner));
+        mCity = ((EditText) findViewById(R.id.city));
     }
 
-    private void fillFields() {
-        final AlertDialog progressDialog = Notifications.showLoadingDialog(this, getString(R.string.loading));
+    private void loadCountries() {
+        showProgressDialog(true);
+        SettingsAPI.getCountries(new ApiListeners.OnItemsArrayLoadedListener() {
+            @Override
+            public void onLoaded(Result result, ArrayList<Model> items) {
+                if (result.isSucceeded()) {
+                    mCountriesNames.add(getString(R.string.select_country));
+                    mCountriesIds.add("");
+                    for (Model item : items) {
+                        mCountriesNames.add(((Country) item).getName());
+                        mCountriesIds.add(item.getId());
+
+                        // fill the spinner:
+                        ArrayAdapter<String> adapter = new ArrayAdapter<String>(UpdateUserActivity.this, android.R.layout.simple_spinner_item, mCountriesNames);
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        mCountries.setAdapter(adapter);
+                        loadUserInfo();
+                    }
+
+                } else {
+                    showProgressDialog(false);
+                    Notifications.showYesNoDialog(UpdateUserActivity.this,
+                            getString(R.string.error),
+                            result.getMessages().get(0),
+                            getString(R.string.retry),
+                            getString(R.string.cancel),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    loadCountries();
+                                }
+                            },
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    finish();
+                                }
+                            });
+                }
+
+            }
+        });
+    }
+
+    private void loadUserInfo() {
+        if (mProgressDialog == null) showProgressDialog(true);
         UserApi.get(null, new ApiListeners.OnItemLoadedListener() {
             @Override
             public void onLoaded(Result result, Model item) {
+                showProgressDialog(false);
+
                 if (result.isSucceeded()) {
 
                     mUser = ((UserModel) item);
@@ -138,20 +199,51 @@ public class UpdateUserActivity extends AppCompatActivity {
                                 .load(mUser.getPhoto())
                                 .into(mPhoto);
                     mPrivate.setChecked(mUser.isPrivate());
+                    mCity.setText(mUser.getCity());
+
+                    // fill the country spinner:
+                    if (!mUser.getCountry().isEmpty()) {
+                        for (int i = 0; i < mCountriesNames.size(); i++) {
+                            if (mCountriesNames.get(i).equals(mUser.getCountry())) {
+                                mCountries.setSelection(i);
+                                break;
+                            }
+                        }
+                    }
 
                     initEvents();
 
                 } else {
-                    Notifications.showListAlertDialog(UpdateUserActivity.this, getString(R.string.error), result.getMessages()).setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialogInterface) {
-                            finish();
-                        }
-                    });
+                    Notifications.showYesNoDialog(UpdateUserActivity.this,
+                            getString(R.string.error),
+                            result.getMessages().get(0),
+                            getString(R.string.retry),
+                            getString(R.string.cancel),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    loadUserInfo();
+                                }
+                            },
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    finish();
+                                }
+                            });
                 }
-                progressDialog.dismiss();
             }
         });
+    }
+
+    private void showProgressDialog(boolean show) {
+        if (show && mProgressDialog == null) {
+            mProgressDialog = Notifications.showLoadingDialog(this, getString(R.string.loading));
+        } else if (!show && mProgressDialog != null) {
+            mProgressDialog.dismiss();
+            mProgressDialog = null;
+        }
+
     }
 
     private void initEvents() {
@@ -216,8 +308,11 @@ public class UpdateUserActivity extends AppCompatActivity {
         String mobile = mMobile.getText().toString().trim();
         String gender = mGender.getCheckedRadioButtonId() == R.id.male ? "m" : mGender.getCheckedRadioButtonId() == R.id.female ? "f" : null;
         File photo = mPhotoPath != null ? new File(mPhotoPath) : null;
+        String countryId = mCountriesIds.get(mCountries.getSelectedItemPosition());
+        String city = mCity.getText().toString().trim();
+
         final AlertDialog progress = Notifications.showLoadingDialog(UpdateUserActivity.this, getString(R.string.loading));
-        UserApi.update(userName, photo, bio, website, mobile, gender, new ApiListeners.OnItemLoadedListener() {
+        UserApi.update(userName, photo, bio, website, mobile, gender, countryId, city, new ApiListeners.OnItemLoadedListener() {
             @Override
             public void onLoaded(Result result, Model item) {
                 if (result.isSucceeded()) {

@@ -25,6 +25,7 @@ import android.support.v7.widget.AppCompatSeekBar;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -312,6 +313,23 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     private void initEvents() {
+
+        mHashTagsTextView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    String hashtag = MiscUtils.getWordFromCharPosition(mHashTagsTextView.getOffsetForPosition(motionEvent.getX(), motionEvent.getY()), mHashTagsTextView.getText().toString());
+                    if (hashtag == null) return true;
+                    if (hashtag.startsWith("#")) hashtag = hashtag.substring(1);
+                    Intent i = new Intent(PhotoActivity.this, SearchActivity.class);
+                    i.putExtra(SearchActivity.SEARCH_TERM, hashtag);
+                    i.putExtra(SearchActivity.SEARCH_TYPE, SearchActivity.SEARCH_TYPE_STORY);
+                    startActivity(i);
+                    return true;
+                }
+                return false;
+            }
+        });
 
         mViewPager.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -839,6 +857,9 @@ public class PhotoActivity extends AppCompatActivity {
         /**
          * load the comments
          */
+        // clear
+        mAdapter.getItems().clear();
+        mAdapter.notifyDataSetChanged();
         mRefreshRecyclerViewFragment.refreshItems(null, null);
     }
 

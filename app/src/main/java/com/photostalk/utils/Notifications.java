@@ -65,4 +65,40 @@ public class Notifications {
     public static void showSnackbar(View v, String message) {
         Snackbar.make(v, message, Snackbar.LENGTH_LONG).show();
     }
+
+    public static AlertDialog showYesNoDialog(Context context, String title, String message, String yes, String no, final DialogInterface.OnClickListener positiveListener, final DialogInterface.OnClickListener negativeListener) {
+        final boolean[] posClicked = {false};
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        AlertDialog ad = dialog.create();
+        ad.setMessage(message);
+        if (!title.isEmpty()) ad.setTitle(title);
+        ad.setButton(AlertDialog.BUTTON_POSITIVE, yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                positiveListener.onClick(dialog, which);
+                posClicked[0] = true;
+            }
+        });
+
+        ad.setButton(AlertDialog.BUTTON_NEGATIVE, no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                posClicked[0] = true;
+                negativeListener.onClick(dialog, which);
+            }
+        });
+
+        ad.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                if (!posClicked[0])
+                    negativeListener.onClick(dialog, -1);
+            }
+        });
+        ad.show();
+
+        return ad;
+    }
+
 }

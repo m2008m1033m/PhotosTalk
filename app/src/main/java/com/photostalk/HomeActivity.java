@@ -26,7 +26,7 @@ import android.widget.TextView;
 
 import com.photostalk.adapters.TimelineFragmentAdapter;
 import com.photostalk.core.User;
-import com.photostalk.fragments.MyStoriesFragment;
+import com.photostalk.fragments.ProfileFragment;
 import com.photostalk.fragments.RefreshRecyclerViewFragment;
 import com.photostalk.fragments.TrendingFragment;
 import com.photostalk.models.Model;
@@ -60,7 +60,8 @@ public class HomeActivity extends AppCompatActivity {
 
     private RefreshRecyclerViewFragment mTimelineFragment;
     private TrendingFragment mTrendingFragment;
-    private MyStoriesFragment mMyStoriesFragment;
+    //private MyStoriesFragment mMyStoriesFragment;
+    private ProfileFragment mProfileFragment;
 
     private TimelineFragmentAdapter mTimelineAdapter;
 
@@ -88,15 +89,7 @@ public class HomeActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        /**
-         * if I'm at the trending page and the search mode is
-         * enabled and the user presses the back button
-         * just flip back from searching mode to normal
-         */
-        if (mTrendingFragment != null && mTrendingFragment.isSearching() && mTabLayout.getSelectedTabPosition() == 2) {
-            mTrendingFragment.setSearching(false);
-            return;
-        } else if (mDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
+        if (mDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
             mDrawerLayout.closeDrawer(Gravity.LEFT);
             return;
         }
@@ -145,8 +138,8 @@ public class HomeActivity extends AppCompatActivity {
                         mTimelineAdapter.removeStory(storyId);
                     if (mTrendingFragment != null)
                         mTrendingFragment.removeStory(storyId);
-                    if (mMyStoriesFragment != null)
-                        mMyStoriesFragment.removeStory(storyId);
+                    /*if (mMyStoriesFragment != null)
+                        mMyStoriesFragment.removeStory(storyId);*/
                 } else if (intent.getAction().equals(Broadcasting.LOGOUT))
                     finish();
                 else if (intent.getAction().equals(Broadcasting.PROFILE_UPDATED)) {
@@ -239,7 +232,7 @@ public class HomeActivity extends AppCompatActivity {
                     case 0:
                         return mTimelineFragment;
                     case 1:
-                        return mMyStoriesFragment;
+                        return /*mMyStoriesFragment*/mProfileFragment;
                     case 2:
                         return mTrendingFragment;
                 }
@@ -306,7 +299,32 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void setupMyStoriesFragment() {
-        mMyStoriesFragment = new MyStoriesFragment();
+        mProfileFragment = new ProfileFragment() {
+            @Override
+            public void onViewCreated(View view, Bundle savedInstanceState) {
+                super.onViewCreated(view, savedInstanceState);
+                setToolbarVisible(false);
+                loadUserInfo();
+            }
+        };
+        /*mMyStoriesFragment = new MyStoriesFragment();*/
+        /**/
+    }
+
+    private void loadUserInfo() {
+        UserApi.get(User.getInstance().getId(), new ApiListeners.OnItemLoadedListener() {
+            @Override
+            public void onLoaded(Result result, Model item) {
+                if (result.isSucceeded()) {
+                    final UserModel user = ((UserModel) item);
+
+                    mProfileFragment.fillFields(user);
+
+                } else {
+                    loadUserInfo();
+                }
+            }
+        });
     }
 
     private void refreshNavigationView() {

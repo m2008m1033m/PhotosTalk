@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Created by mohammed on 3/13/16.
@@ -135,7 +136,9 @@ public class Notification extends Model {
 
     public void setNotificationDateAsString(String notificationDate) {
         try {
-            mNotificationDate = new SimpleDateFormat("yyyy-MM-dd").parse(notificationDate);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+            mNotificationDate = simpleDateFormat.parse(notificationDate);
         } catch (ParseException e) {
             e.printStackTrace();
         }

@@ -146,4 +146,24 @@ public class MiscUtils {
             imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
         }
     }
+
+    public static String getWordFromCharPosition(int position, String str) {
+        String word = "" + str.charAt(position);
+
+        if (word.equals(" ")) return null;
+
+        char c;
+        int i = position + 1;
+
+        while (i < str.length() && (c = str.charAt(i++)) != ' ') {
+            word += c;
+        }
+
+        i = position - 1;
+        while (i >= 0 && (c = str.charAt(i--)) != ' ') {
+            word = c + word;
+        }
+
+        return word;
+    }
 }

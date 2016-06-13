@@ -107,24 +107,6 @@
                     />
             </FrameLayout>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/post_group_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:background="@drawable/white_touch_bg"
-                    android:clickable="true"
-                    android:text="@string/post_to_group"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    />
-            </FrameLayout>
-
 
         </LinearLayout>
     </LinearLayout>

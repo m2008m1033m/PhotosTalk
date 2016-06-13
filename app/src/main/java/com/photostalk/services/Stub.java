@@ -10,6 +10,7 @@ import com.photostalk.core.Communicator;
 import com.photostalk.core.User;
 import com.photostalk.models.Model;
 import com.photostalk.utils.ApiListeners;
+import com.photostalk.utils.Broadcasting;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -132,6 +133,8 @@ public class Stub {
                         );
 
                 } else {
+                    // user is no longer authenticated:
+                    // need to send logout signal
                     executeListener(listener, result, null, null);
                 }
             }

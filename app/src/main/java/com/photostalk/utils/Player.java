@@ -44,7 +44,8 @@ public class Player {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 stop();
-                onCompletionListener.onCompletion(mediaPlayer);
+                if (onCompletionListener != null)
+                    onCompletionListener.onCompletion(mediaPlayer);
             }
         };
         mOnFailedToLoadRunnable = onFailedToLoadRunnable;
@@ -54,7 +55,8 @@ public class Player {
             public void run() {
                 if (mMediaPlayer == null) return;
                 synchronized (mMediaPlayer) {
-                    onPlayerUpdateListener.onUpdate(mMediaPlayer.getCurrentPosition());
+                    if (onPlayerUpdateListener != null)
+                        onPlayerUpdateListener.onUpdate(mMediaPlayer.getCurrentPosition());
                     mHandler.postDelayed(this, 10);
                 }
             }
