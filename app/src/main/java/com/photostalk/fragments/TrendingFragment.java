@@ -16,9 +16,9 @@ import com.photostalk.adapters.TrendingFragmentAdapter;
 import com.photostalk.core.Communicator;
 import com.photostalk.models.Story;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.Result;
-import com.photostalk.services.StoriesApi;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.StoriesApi;
+import com.photostalk.apis.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
@@ -72,7 +72,7 @@ public class TrendingFragment extends Fragment {
                             if (result.isSucceeded()) {
                                 user.setIsFollowingUser(false);
                                 mTrendingAdapterTest.notifyDataSetChanged();
-                                Broadcasting.sendFollow(getActivity(), user.getId(), false, false);
+                                Broadcasting.sendFollow(user.getId(), false, false);
                             } else {
                                 Notifications.showSnackbar(getActivity(), result.getMessages().get(0));
                             }
@@ -85,7 +85,7 @@ public class TrendingFragment extends Fragment {
                             if (result.isSucceeded()) {
                                 user.setIsFollowRequestSent(true);
                                 mTrendingAdapterTest.notifyDataSetChanged();
-                                Broadcasting.sendFollow(getActivity(), user.getId(), true, false);
+                                Broadcasting.sendFollow(user.getId(), true, false);
                             } else {
                                 Notifications.showSnackbar(getActivity(), result.getMessages().get(0));
                             }
@@ -98,7 +98,7 @@ public class TrendingFragment extends Fragment {
                             if (result.isSucceeded()) {
                                 user.setIsFollowingUser(true);
                                 mTrendingAdapterTest.notifyDataSetChanged();
-                                Broadcasting.sendFollow(getActivity(), user.getId(), false, true);
+                                Broadcasting.sendFollow(user.getId(), false, true);
                             } else {
                                 Notifications.showSnackbar(getActivity(), result.getMessages().get(0));
                             }

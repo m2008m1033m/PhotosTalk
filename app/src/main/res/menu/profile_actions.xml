@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/follow"
-        android:icon="@drawable/follow"
+        android:icon="@mipmap/follow"
         android:title="@string/follow"
         app:showAsAction="ifRoom"
         />

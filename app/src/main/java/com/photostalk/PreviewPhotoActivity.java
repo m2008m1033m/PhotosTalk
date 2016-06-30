@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
@@ -19,9 +18,9 @@ import android.widget.TextView;
 
 import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
+import com.photostalk.apis.PhotosApi;
+import com.photostalk.apis.Result;
 import com.photostalk.models.Model;
-import com.photostalk.services.PhotosApi;
-import com.photostalk.services.Result;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.MiscUtils;
@@ -30,7 +29,7 @@ import com.photostalk.utils.Player;
 
 import java.io.File;
 
-public class PreviewPhotoActivity extends AppCompatActivity {
+public class PreviewPhotoActivity extends LoggedInActivity {
 
     public static final String PHOTO_PATH = "photo_path";
     public static final String AUDIO_PATH = "audio_path";
@@ -169,9 +168,14 @@ public class PreviewPhotoActivity extends AppCompatActivity {
         mPlayStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mPlayStopButton.setImageResource(R.drawable.crystal_button);
-                mProgressBar.setVisibility(View.VISIBLE);
-                mPlayer.play(mAudioPath);
+                if (mPlayer.isPlaying()) {
+                    mPlayer.stop();
+                    mPlayStopButton.setImageResource(R.drawable.play_blue);
+                } else {
+                    mPlayStopButton.setImageResource(R.drawable.crystal_button);
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    mPlayer.play(mAudioPath);
+                }
             }
         });
 
@@ -194,7 +198,7 @@ public class PreviewPhotoActivity extends AppCompatActivity {
                             Intent i = new Intent(PreviewPhotoActivity.this, PhotoActivity.class);
                             i.putExtra(PhotoActivity.PHOTO_ID, item.getId());
                             startActivity(i);
-                            Broadcasting.sendPhotoPosted(PreviewPhotoActivity.this);
+                            Broadcasting.sendPhotoPosted();
                             finish();
                             Log.d("RecordTagFilterActivity", "photo id: " + item.getId());
 

@@ -1,4 +1,4 @@
-package com.photostalk.services;
+package com.photostalk.apis;
 
 import android.graphics.Bitmap;
 

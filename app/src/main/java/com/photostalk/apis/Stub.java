@@ -1,4 +1,4 @@
-package com.photostalk.services;
+package com.photostalk.apis;
 
 import android.support.annotation.Nullable;
 
@@ -135,6 +135,8 @@ public class Stub {
                 } else {
                     // user is no longer authenticated:
                     // need to send logout signal
+                    Broadcasting.sendExpiredRefreshToken();
+
                     executeListener(listener, result, null, null);
                 }
             }

@@ -31,13 +31,6 @@
         </activity>
 
         <activity
-            android:name=".RecordTagFilterActivityNew"
-            android:configChanges="orientation|keyboardHidden"
-            android:screenOrientation="portrait"
-            android:theme="@style/NoActionBarThemWithSolidNav">
-        </activity>
-
-        <activity
             android:name="com.photostalk.CameraActivity"
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="portrait"
@@ -57,6 +50,9 @@
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="portrait"
             android:theme="@style/NoActionBarThemWithSolidNavDark">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".HomeActivity"/>
         </activity>
 
         <activity
@@ -78,6 +74,9 @@
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".HomeActivity"/>
         </activity>
 
         <activity
@@ -120,6 +119,13 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
         <activity
+            android:name="com.photostalk.SettingsActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
             android:name="com.photostalk.SplashActivity"
             android:configChanges="orientation|keyboardHidden"
             android:noHistory="true"
@@ -146,6 +152,20 @@
         </activity>
 
         <activity android:name="com.soundcloud.android.crop.CropImageActivity"/>
+
+        <service
+            android:name=".services.PhotosTalkFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".services.PhotosTalkFirebaseInstanceIdService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
 
     </application>
 

@@ -7,8 +7,10 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.photostalk.R;
 import com.photostalk.utils.MiscUtils;
+import com.squareup.picasso.Picasso;
 
 
 public class AudioItemView extends FrameLayout {
@@ -50,6 +52,8 @@ public class AudioItemView extends FrameLayout {
         params.width = (int) (getLayoutParams().width * 0.90f);
         params.gravity = Gravity.CENTER;
         roundImageView.setLayoutParams(params);
-        roundImageView.setImageResource(resId);
+        Picasso.with(getContext())
+                .load(resId)
+                .into(roundImageView);
     }
 }

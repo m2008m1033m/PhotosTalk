@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.Button;
 
@@ -16,16 +15,14 @@ import com.photostalk.core.User;
 import com.photostalk.fragments.RefreshRecyclerViewFragment;
 import com.photostalk.models.Followship;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.Result;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
 
-/**
- * Created by mohammed on 3/7/16.
- */
-public class FollowshipAndBlockagesActivity extends AppCompatActivity {
+
+public class FollowshipAndBlockagesActivity extends LoggedInActivity {
 
     public static final String TYPE = "type";
     public static final int TYPE_FOLLOWERS = 0;
@@ -100,15 +97,12 @@ public class FollowshipAndBlockagesActivity extends AppCompatActivity {
                     if (position == -1) return;
                     mAdapter.getItems().remove(position);
                     mAdapter.notifyDataSetChanged();
-                } else if (intent.getAction().equals(Broadcasting.LOGOUT)) {
-                    finish();
                 }
             }
         };
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.FOLLOW);
         intentFilter.addAction(Broadcasting.BLOCK);
-        intentFilter.addAction(Broadcasting.LOGOUT);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -144,7 +138,7 @@ public class FollowshipAndBlockagesActivity extends AppCompatActivity {
                                         updateUser(user, false, false);
                                     }
                                     mAdapter.notifyDataSetChanged();
-                                    Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), false, false);
+                                    Broadcasting.sendFollow(mAdapter.getUser(position).getId(), false, false);
                                 } else
                                     Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
                             }
@@ -156,7 +150,7 @@ public class FollowshipAndBlockagesActivity extends AppCompatActivity {
                                 @Override
                                 public void onExecuted(Result result) {
                                     if (result.isSucceeded()) {
-                                        Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), true, false);
+                                        Broadcasting.sendFollow(mAdapter.getUser(position).getId(), true, false);
                                         updateUser(user, true, false);
                                     } else
                                         Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
@@ -168,7 +162,7 @@ public class FollowshipAndBlockagesActivity extends AppCompatActivity {
                                 @Override
                                 public void onExecuted(Result result) {
                                     if (result.isSucceeded()) {
-                                        Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), false, true);
+                                        Broadcasting.sendFollow(mAdapter.getUser(position).getId(), false, true);
                                         updateUser(user, false, true);
                                     } else
                                         Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
@@ -181,7 +175,7 @@ public class FollowshipAndBlockagesActivity extends AppCompatActivity {
                             @Override
                             public void onExecuted(Result result) {
                                 if (result.isSucceeded()) {
-                                    Broadcasting.sendFollow(FollowshipAndBlockagesActivity.this, mAdapter.getUser(position).getId(), false, false);
+                                    Broadcasting.sendFollow(mAdapter.getUser(position).getId(), false, false);
                                     updateUser(user, false, false);
                                 } else
                                     Notifications.showSnackbar(FollowshipAndBlockagesActivity.this, result.getMessages().get(0));
@@ -193,7 +187,7 @@ public class FollowshipAndBlockagesActivity extends AppCompatActivity {
                         @Override
                         public void onExecuted(Result result) {
                             if (result.isSucceeded()) {
-                                Broadcasting.sendBlock(FollowshipAndBlockagesActivity.this, user.getId(), true);
+                                Broadcasting.sendBlock(user.getId(), true);
                                 mAdapter.getItems().remove(position);
                                 mAdapter.notifyDataSetChanged();
                             } else {

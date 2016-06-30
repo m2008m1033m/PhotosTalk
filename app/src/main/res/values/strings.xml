@@ -156,6 +156,18 @@
     <string name="retry">Retry</string>
     <string name="select_country">Select Country</string>
     <string name="country">Country</string>
+    <string name="authorization_error">Authorization Error.</string>
+    <string name="comments">Comments</string>
+    <string name="receive_notification_when_users_comment_on_your_photos">Receive notifications when users comment on your photos.</string>
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
+    <string name="s_has_liked_your_photo">%s has liked your photo</string>
+    <string name="follow_requests">Follow Requests</string>
+    <string name="follow_requests_acceptance">Follow Requests Accesptance</string>
+    <string name="receive_notifications_when_someone_likes_your_photos">Receive notifications when someone likes your photos</string>
+    <string name="receive_notifications_when_people_follow_you">Receive notifications when people follow you.</string>
+    <string name="receive_notifications_when_people_send_follow_requests_to_you">Receive notifications when people send follow requests to you</string>
+    <string name="receive_notifications_when_people_accept_your_follow_requests">Receive notifications when people accept your follow requests</string>
 
     <plurals name="d_people_commented_on_this">
         <item quantity="one">%d person commented on this.</item>
@@ -171,4 +183,17 @@
         <item quantity="one">%d Like</item>
         <item quantity="other">%d Likes</item>
     </plurals>
+
+    <string-array name="updateFrequency">
+        <item name="1">Daily</item>
+        <item name="7">Weekly</item>
+        <item name="3">Yearly</item>
+        <item name="0">Never(I will Myself) </item>
+    </string-array>
+    <string-array name="updateFrequencyValues">
+        <item name="1">1</item>
+        <item name="7">7</item>
+        <item name="30">30</item>
+        <item name="0">0</item>
+    </string-array>
 </resources>

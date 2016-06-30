@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -14,14 +13,12 @@ import android.view.MenuItem;
 
 import com.photostalk.adapters.SelectBestPhotoAdapter;
 import com.photostalk.models.BestPhoto;
-import com.photostalk.services.Local;
+import com.photostalk.apis.Local;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
 
-/**
- * Created by mohammed on 2/24/16.
- */
-public class SelectBestPhotoActivity extends AppCompatActivity {
+
+public class SelectBestPhotoActivity extends LoggedInActivity {
 
     private RecyclerView mRecyclerView;
     private SelectBestPhotoAdapter mAdapter;
@@ -58,7 +55,6 @@ public class SelectBestPhotoActivity extends AppCompatActivity {
         };
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Broadcasting.PHOTO_POSTED);
-        intentFilter.addAction(Broadcasting.LOGOUT);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Broadcasting.PHOTO_POSTED));
     }
 

@@ -23,7 +23,7 @@ public class AudioItemSliderView extends HorizontalScrollView {
     }
 
     public interface OnItemClickedListener {
-        void onClicked(int position);
+        void onClicked(int previousPosition, int position);
     }
 
     private LinearLayout mLinearLayout;
@@ -64,6 +64,19 @@ public class AudioItemSliderView extends HorizontalScrollView {
         mOnItemClickedListener = listener;
     }
 
+    public void setSelectedItem(int position) {
+        if (mOnItemClickedListener != null) {
+            mOnItemClickedListener.onClicked(mSelectedItemPosition, position);
+        }
+
+        if (mSelectedItemPosition != -1)
+            mAudioItemViews.get(mSelectedItemPosition).setItemSelected(false);
+        mSelectedItemPosition = position;
+        mAudioItemViews.get(mSelectedItemPosition).setItemSelected(true);
+
+
+    }
+
     private void recheck() {
         for (int i = 0; i < mAudioItems.size(); i++) {
             AudioItem audioItem = mAudioItems.get(i);
@@ -91,9 +104,6 @@ public class AudioItemSliderView extends HorizontalScrollView {
                 @Override
                 public void onClick(View view) {
                     setSelectedItem(position);
-                    if (mOnItemClickedListener != null) {
-                        mOnItemClickedListener.onClicked(position);
-                    }
                 }
             });
 
@@ -103,13 +113,6 @@ public class AudioItemSliderView extends HorizontalScrollView {
         }
     }
 
-    private void setSelectedItem(int position) {
-        if (mSelectedItemPosition != -1)
-            mAudioItemViews.get(mSelectedItemPosition).setItemSelected(false);
-        mSelectedItemPosition = position;
-        mAudioItemViews.get(mSelectedItemPosition).setItemSelected(true);
-
-    }
 
     private void init() {
         /**

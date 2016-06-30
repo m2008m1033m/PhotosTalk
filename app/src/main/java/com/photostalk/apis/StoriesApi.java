@@ -1,4 +1,4 @@
-package com.photostalk.services;
+package com.photostalk.apis;
 
 import com.loopj.android.http.RequestParams;
 import com.photostalk.models.Model;

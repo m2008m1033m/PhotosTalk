@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -26,9 +25,9 @@ import com.photostalk.core.Communicator;
 import com.photostalk.fragments.RefreshRecyclerViewFragment;
 import com.photostalk.models.Story;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.PhotosApi;
-import com.photostalk.services.Result;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.PhotosApi;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
@@ -36,7 +35,7 @@ import com.photostalk.utils.Notifications;
 import java.util.List;
 
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends LoggedInActivity {
 
     public static String SEARCH_TERM = "search_term";
     public static String SEARCH_TYPE = "search_type";
@@ -89,9 +88,7 @@ public class SearchActivity extends AppCompatActivity {
                 } else if (intent.getAction().equals(Broadcasting.STORY_DELETE)) {
                     String storyId = intent.getStringExtra("story_id");
                     removeStory(storyId);
-                } else if (intent.getAction().equals(Broadcasting.LOGOUT))
-                    finish();
-                else if (intent.getAction().equals(Broadcasting.PROFILE_UPDATED)) {
+                } else if (intent.getAction().equals(Broadcasting.PROFILE_UPDATED)) {
                     updateUserPhoto();
                 }
             }
@@ -99,7 +96,6 @@ public class SearchActivity extends AppCompatActivity {
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.FOLLOW);
         intentFilter.addAction(Broadcasting.STORY_DELETE);
-        intentFilter.addAction(Broadcasting.LOGOUT);
         intentFilter.addAction(Broadcasting.PROFILE_UPDATED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
@@ -281,7 +277,7 @@ public class SearchActivity extends AppCompatActivity {
                             if (result.isSucceeded()) {
                                 user.setIsFollowingUser(false);
                                 mAdapter.notifyDataSetChanged();
-                                Broadcasting.sendFollow(SearchActivity.this, user.getId(), false, false);
+                                Broadcasting.sendFollow(user.getId(), false, false);
                             } else {
                                 Notifications.showSnackbar(SearchActivity.this, result.getMessages().get(0));
                             }
@@ -294,7 +290,7 @@ public class SearchActivity extends AppCompatActivity {
                             if (result.isSucceeded()) {
                                 user.setIsFollowRequestSent(true);
                                 mAdapter.notifyDataSetChanged();
-                                Broadcasting.sendFollow(SearchActivity.this, user.getId(), true, false);
+                                Broadcasting.sendFollow(user.getId(), true, false);
                             } else {
                                 Notifications.showSnackbar(SearchActivity.this, result.getMessages().get(0));
                             }
@@ -307,7 +303,7 @@ public class SearchActivity extends AppCompatActivity {
                             if (result.isSucceeded()) {
                                 user.setIsFollowingUser(true);
                                 mAdapter.notifyDataSetChanged();
-                                Broadcasting.sendFollow(SearchActivity.this, user.getId(), false, true);
+                                Broadcasting.sendFollow(user.getId(), false, true);
                             } else {
                                 Notifications.showSnackbar(SearchActivity.this, result.getMessages().get(0));
                             }

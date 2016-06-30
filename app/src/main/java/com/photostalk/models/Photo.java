@@ -36,6 +36,7 @@ public class Photo extends Model {
     private String mShareUrl;
     private boolean mIsAuthor;
     private boolean mIsLiked;
+    private boolean mIsMuted;
 
     public Photo() {
         mStory = new Story();
@@ -59,6 +60,7 @@ public class Photo extends Model {
         setShareUrl(MiscUtils.getString(jsonObject, "share_url", ""));
         setIsAuthor(MiscUtils.getBoolean(jsonObject, "is_author", false));
         setIsLiked(MiscUtils.getBoolean(jsonObject, "is_liked", false));
+        setIsMuted(MiscUtils.getBoolean(jsonObject, "is_muted", false));
 
         try {
             if (!jsonObject.getString("hashtags").trim().equals("null")) {
@@ -256,6 +258,14 @@ public class Photo extends Model {
         mIsLiked = isLiked;
     }
 
+    public boolean isMuted() {
+        return mIsMuted;
+    }
+
+    public void setIsMuted(boolean isMuted) {
+        mIsMuted = isMuted;
+    }
+
     @Override
     public void copyFrom(Model model) {
         Photo other = ((Photo) model);
@@ -272,6 +282,7 @@ public class Photo extends Model {
         setShareUrl(other.getShareUrl());
         setIsAuthor(other.isAuthor());
         setIsLiked(other.isLiked());
+        setIsMuted(other.isMuted());
         mHashTags = other.mHashTags;
         mStory.copyFrom(other.getStory());
         mUser.copyFrom(other.getUser());

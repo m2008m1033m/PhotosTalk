@@ -14,7 +14,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
@@ -25,6 +24,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.photostalk.adapters.TimelineFragmentAdapter;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.UserApi;
 import com.photostalk.core.User;
 import com.photostalk.fragments.ProfileFragment;
 import com.photostalk.fragments.RefreshRecyclerViewFragment;
@@ -32,8 +33,6 @@ import com.photostalk.fragments.TrendingFragment;
 import com.photostalk.models.Model;
 import com.photostalk.models.Story;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.Result;
-import com.photostalk.services.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
@@ -41,10 +40,8 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-/**
- * Created by mohammed on 3/10/16.
- */
-public class HomeActivity extends AppCompatActivity {
+
+public class HomeActivity extends LoggedInActivity {
 
     public final static int USER = 0;
     public final static int TRENDING = 1;
@@ -140,9 +137,7 @@ public class HomeActivity extends AppCompatActivity {
                         mTrendingFragment.removeStory(storyId);
                     /*if (mMyStoriesFragment != null)
                         mMyStoriesFragment.removeStory(storyId);*/
-                } else if (intent.getAction().equals(Broadcasting.LOGOUT))
-                    finish();
-                else if (intent.getAction().equals(Broadcasting.PROFILE_UPDATED)) {
+                } else if (intent.getAction().equals(Broadcasting.PROFILE_UPDATED)) {
                     refreshNavigationView();
                     mTimelineAdapter.updateUserPhoto();
                     mTrendingFragment.updateUserPhoto();
@@ -156,7 +151,6 @@ public class HomeActivity extends AppCompatActivity {
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.FOLLOW);
         intentFilter.addAction(Broadcasting.STORY_DELETE);
-        intentFilter.addAction(Broadcasting.LOGOUT);
         intentFilter.addAction(Broadcasting.PROFILE_UPDATED);
         intentFilter.addAction(Broadcasting.PHOTO_POSTED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
@@ -207,9 +201,10 @@ public class HomeActivity extends AppCompatActivity {
                         startActivity(new Intent(HomeActivity.this, NotificationsActivity.class));
                         break;
                     case R.id.logout:
-                        User.getInstance().logout();
-                        startActivity(new Intent(HomeActivity.this, LoginActivity.class));
-                        Broadcasting.sendLogout(HomeActivity.this);
+                        Broadcasting.sendLogout();
+                        break;
+                    case R.id.settings:
+                        startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
                         break;
                 }
 
@@ -361,7 +356,7 @@ public class HomeActivity extends AppCompatActivity {
                     if (result.isSucceeded()) {
                         user.setIsFollowingUser(false);
                         adapter.notifyItemChanged(position);
-                        Broadcasting.sendFollow(HomeActivity.this, user.getId(), false, false);
+                        Broadcasting.sendFollow(user.getId(), false, false);
                     } else {
                         Notifications.showSnackbar(mCoordinatorLayout, result.getMessages().get(0));
                     }
@@ -374,7 +369,7 @@ public class HomeActivity extends AppCompatActivity {
                     if (result.isSucceeded()) {
                         user.setIsFollowRequestSent(true);
                         adapter.notifyItemChanged(position);
-                        Broadcasting.sendFollow(HomeActivity.this, user.getId(), true, false);
+                        Broadcasting.sendFollow(user.getId(), true, false);
                     } else {
                         Notifications.showSnackbar(mCoordinatorLayout, result.getMessages().get(0));
                     }
@@ -387,7 +382,7 @@ public class HomeActivity extends AppCompatActivity {
                     if (result.isSucceeded()) {
                         user.setIsFollowingUser(true);
                         adapter.notifyItemChanged(position);
-                        Broadcasting.sendFollow(HomeActivity.this, user.getId(), false, true);
+                        Broadcasting.sendFollow(user.getId(), false, true);
                     } else {
                         Notifications.showSnackbar(mCoordinatorLayout, result.getMessages().get(0));
                     }

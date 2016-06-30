@@ -13,7 +13,7 @@ import com.photostalk.StoryActivity;
 import com.photostalk.adapters.ProfileActivityStoriesAdapter;
 import com.photostalk.core.User;
 import com.photostalk.models.Story;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.UserApi;
 
 import java.util.Iterator;
 

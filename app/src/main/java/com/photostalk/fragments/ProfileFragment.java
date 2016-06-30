@@ -33,7 +33,7 @@ import com.photostalk.core.User;
 import com.photostalk.models.Photo;
 import com.photostalk.models.Story;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.UserApi;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
 import com.photostalk.utils.Player;

@@ -1,4 +1,4 @@
-package com.photostalk.services;
+package com.photostalk.apis;
 
 import com.photostalk.models.Country;
 import com.photostalk.models.Model;

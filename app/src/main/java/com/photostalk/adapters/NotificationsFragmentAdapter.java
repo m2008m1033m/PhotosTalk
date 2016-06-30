@@ -123,9 +123,7 @@ public class NotificationsFragmentAdapter extends RefreshAdapter {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ((ViewHolder) holder).mPosition = position;
         Notification item = mItems.get(position);
-        String text = "";
-
-        if (item.getType() == Notification.Type.UNKNOWN) return;
+        String text;
 
         switch (item.getType()) {
             case REQUEST:
@@ -156,9 +154,19 @@ public class NotificationsFragmentAdapter extends RefreshAdapter {
                 ((ViewHolder) holder).mAcceptReject.setVisibility(View.GONE);
                 text = PhotosTalkApplication.getContext().getString(R.string.s_has_commented_on_your_photo, item.getUser().getName());
                 break;
+            case LIKE:
+                ((ViewHolder) holder).mFollowButton.setVisibility(View.GONE);
+                ((ViewHolder) holder).mAcceptReject.setVisibility(View.GONE);
+                text = PhotosTalkApplication.getContext().getString(R.string.s_has_liked_your_photo, item.getUser().getName());
+                break;
+            default:
+                ((ViewHolder) holder).mFollowButton.setVisibility(View.GONE);
+                ((ViewHolder) holder).mAcceptReject.setVisibility(View.GONE);
+                text = "unknown notification type: " + item.getTypeName() + " with id " + item.getTypeId();
+                break;
         }
 
-        if (item.getUser().getPhoto().isEmpty()) {
+        if (item.getUser().getPhoto().isEmpty() || item.getType() == Notification.Type.UNKNOWN) {
             Picasso.with(PhotosTalkApplication.getContext())
                     .load(R.drawable.no_avatar)
                     .into(((ViewHolder) holder).mUserPhoto);
@@ -170,7 +178,6 @@ public class NotificationsFragmentAdapter extends RefreshAdapter {
         }
 
         ((ViewHolder) holder).mText.setText(text);
-
         ((ViewHolder) holder).mDate.setText(MiscUtils.getDurationFormatted(item.getNotificationDate()));
     }
 

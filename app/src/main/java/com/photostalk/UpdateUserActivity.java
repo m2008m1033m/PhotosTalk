@@ -1,17 +1,12 @@
 package com.photostalk;
 
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -28,9 +23,9 @@ import com.photostalk.core.User;
 import com.photostalk.models.Country;
 import com.photostalk.models.Model;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.Result;
-import com.photostalk.services.SettingsAPI;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.SettingsAPI;
+import com.photostalk.apis.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
@@ -43,7 +38,7 @@ import java.util.ArrayList;
 /**
  * Created by mohammed on 3/6/16.
  */
-public class UpdateUserActivity extends AppCompatActivity {
+public class UpdateUserActivity extends LoggedInActivity {
 
     private final static int PICK_IMAGE = 0;
     private final static int PIC_CROP = 1;
@@ -63,8 +58,6 @@ public class UpdateUserActivity extends AppCompatActivity {
 
     private AlertDialog mProgressDialog;
 
-    private BroadcastReceiver mBroadcastReceiver;
-
     private UserModel mUser;
     private String mPhotoPath = null;
 
@@ -75,7 +68,6 @@ public class UpdateUserActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setupBroadcastReceiver();
         setContentView(R.layout.update_user_profile);
         setTitle(getString(R.string.edit_profile));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -93,23 +85,6 @@ public class UpdateUserActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
-        super.onDestroy();
-    }
-
-    private void setupBroadcastReceiver() {
-        mBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(Broadcasting.LOGOUT))
-                    finish();
-            }
-        };
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Broadcasting.LOGOUT));
-    }
 
     private void init() {
         initReferences();
@@ -324,7 +299,7 @@ public class UpdateUserActivity extends AppCompatActivity {
                     User.getInstance().setGender(u.getGender());
                     User.getInstance().setPhoto(u.getPhoto());
                     User.getInstance().update();
-                    Broadcasting.sendProfileUpdated(UpdateUserActivity.this);
+                    Broadcasting.sendProfileUpdated();
                     mPhotoPath = null;
                     finish();
                 } else {

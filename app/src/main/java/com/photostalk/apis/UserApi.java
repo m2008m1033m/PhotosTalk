@@ -1,4 +1,4 @@
-package com.photostalk.services;
+package com.photostalk.apis;
 
 import android.support.annotation.Nullable;
 import android.util.Log;

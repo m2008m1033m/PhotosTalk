@@ -20,7 +20,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -37,6 +36,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.photostalk.adapters.PhotoActivityAdapter;
+import com.photostalk.apis.PhotosApi;
+import com.photostalk.apis.Result;
 import com.photostalk.core.Communicator;
 import com.photostalk.customViews.AudioVisualizer;
 import com.photostalk.customViews.WaveAudioVisualizer;
@@ -46,8 +47,6 @@ import com.photostalk.models.Comment;
 import com.photostalk.models.Model;
 import com.photostalk.models.Photo;
 import com.photostalk.models.Story;
-import com.photostalk.services.PhotosApi;
-import com.photostalk.services.Result;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.MiscUtils;
@@ -62,7 +61,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import java.io.File;
 import java.util.ArrayList;
 
-public class PhotoActivity extends AppCompatActivity {
+public class PhotoActivity extends LoggedInActivity {
 
     public final static String PHOTO_ID = "photo_id";
     public final static String STORY = "story";
@@ -193,6 +192,34 @@ public class PhotoActivity extends AppCompatActivity {
             case android.R.id.home:
                 this.finish();
                 return true;
+            case R.id.mute:
+                if (mPhoto == null) return true;
+                if (mPhoto.isMuted()) {
+                    PhotosApi.unmute(mPhoto.getId(), new ApiListeners.OnActionExecutedListener() {
+                        @Override
+                        public void onExecuted(Result result) {
+                            if (result.isSucceeded()) {
+                                mPhoto.setIsMuted(false);
+                                hideShowDeleteOption();
+                            } else {
+                                Notifications.showSnackbar(PhotoActivity.this, result.getMessages().get(0));
+                            }
+                        }
+                    });
+                } else {
+                    PhotosApi.mute(mPhoto.getId(), new ApiListeners.OnActionExecutedListener() {
+                        @Override
+                        public void onExecuted(Result result) {
+                            if (result.isSucceeded()) {
+                                mPhoto.setIsMuted(true);
+                                hideShowDeleteOption();
+                            } else {
+                                Notifications.showSnackbar(PhotoActivity.this, result.getMessages().get(0));
+                            }
+                        }
+                    });
+                }
+                break;
             case R.id.delete:
                 if (mPhoto == null) return true;
                 playHeader(false);
@@ -200,7 +227,7 @@ public class PhotoActivity extends AppCompatActivity {
                     @Override
                     public void onExecuted(Result result) {
                         if (result.isSucceeded()) {
-                            Broadcasting.sendPhotoDelete(PhotoActivity.this, mPhoto.getId());
+                            Broadcasting.sendPhotoDelete(mPhoto.getId());
                             finish();
                         } else
                             Notifications.showSnackbar(PhotoActivity.this, result.getMessages().get(0));
@@ -267,8 +294,6 @@ public class PhotoActivity extends AppCompatActivity {
                     String storyId = intent.getStringExtra("story_id");
                     if (mPhoto.getStory().getId().equals(storyId))
                         finish();
-                } else if (intent.getAction().equals(Broadcasting.LOGOUT)) {
-                    finish();
                 }
             }
         };
@@ -276,7 +301,6 @@ public class PhotoActivity extends AppCompatActivity {
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.PHOTO_DELETE);
         intentFilter.addAction(Broadcasting.STORY_DELETE);
-        intentFilter.addAction(Broadcasting.LOGOUT);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -854,6 +878,7 @@ public class PhotoActivity extends AppCompatActivity {
         mLikeButton.setCompoundDrawablesWithIntrinsicBounds(mPhoto == null || !mPhoto.isLiked() ? R.mipmap.ic_empty_heart : R.mipmap.ic_like_blue, 0, 0, 0);
         mPlayStopButton.setVisibility(mPhoto == null || mPhoto.getAudioUrl().isEmpty() ? View.GONE : View.VISIBLE);
 
+
         /**
          * load the comments
          */
@@ -916,7 +941,13 @@ public class PhotoActivity extends AppCompatActivity {
 
     private void hideShowDeleteOption() {
         if (mPhoto == null || mMenu == null) return;
-        mMenu.getItem(0).setVisible(mPhoto.isAuthor());
+        mMenu.getItem(0).setVisible(mPhoto.isAuthor()); // mute
+        mMenu.getItem(1).setVisible(mPhoto.isAuthor()); // delete
+        mMenu.getItem(2).setVisible(!mPhoto.isAuthor()); // report
+
+        if (mPhoto.isAuthor()) {
+            mMenu.getItem(0).setTitle(mPhoto.isMuted() ? getString(R.string.unmute) : getString(R.string.mute));
+        }
     }
 
     private void showRecordUI(boolean record) {

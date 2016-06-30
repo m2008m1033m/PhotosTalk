@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,8 +20,8 @@ import com.photostalk.core.User;
 import com.photostalk.fragments.ProfileFragment;
 import com.photostalk.models.Model;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.Result;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
@@ -30,7 +29,7 @@ import com.photostalk.utils.Notifications;
 /**
  * Created by mohammed on 3/6/16.
  */
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends LoggedInActivity {
 
     private final static int FOLLOW = 0;
     private final static int EDIT = 1;
@@ -81,9 +80,9 @@ public class ProfileActivity extends AppCompatActivity {
                 this.finish();
                 return true;
             case R.id.logout:
-                User.getInstance().logout();
-                startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
-                Broadcasting.sendLogout(this);
+                //User.getInstance().logout();
+                //startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
+                Broadcasting.sendLogout();
                 return true;
             case R.id.edit:
                 startActivity(new Intent(this, UpdateUserActivity.class));
@@ -116,7 +115,7 @@ public class ProfileActivity extends AppCompatActivity {
                                 mUser.setIsBlocked(false);
                                 Notifications.showSnackbar(ProfileActivity.this, getString(R.string.unblocked_successfully));
                                 item.setTitle(R.string.block);
-                                Broadcasting.sendBlock(ProfileActivity.this, mUser.getId(), false);
+                                Broadcasting.sendBlock(mUser.getId(), false);
                             } else
                                 Notifications.showSnackbar(ProfileActivity.this, result.getMessages().get(0));
                         }
@@ -129,7 +128,7 @@ public class ProfileActivity extends AppCompatActivity {
                                 mUser.setIsBlocked(true);
                                 Notifications.showSnackbar(ProfileActivity.this, getString(R.string.blocked_successfully));
                                 item.setTitle(R.string.unblock);
-                                Broadcasting.sendBlock(ProfileActivity.this, mUser.getId(), true);
+                                Broadcasting.sendBlock(mUser.getId(), true);
                             } else
                                 Notifications.showSnackbar(ProfileActivity.this, result.getMessages().get(0));
                         }
@@ -144,7 +143,7 @@ public class ProfileActivity extends AppCompatActivity {
                             mUser.setIsFollowingUser(false);
                             Notifications.showSnackbar(ProfileActivity.this, getString(R.string.you_have_unfollowed_s_successully, mUser.getName()));
                             mMenu.getItem(UNFOLLOW).setVisible(false);
-                            Broadcasting.sendFollow(ProfileActivity.this, mUser.getId(), false, false);
+                            Broadcasting.sendFollow(mUser.getId(), false, false);
                         } else {
                             Notifications.showSnackbar(ProfileActivity.this, result.getMessages().get(0));
                         }
@@ -163,7 +162,7 @@ public class ProfileActivity extends AppCompatActivity {
                                 mUser.setIsFollowRequestSent(true);
                                 refreshFollowUnfollowActionButtons();
                                 Notifications.showSnackbar(ProfileActivity.this, getString(R.string.a_request_has_been_sent_to_s, mUser.getName()));
-                                Broadcasting.sendFollow(ProfileActivity.this, mUser.getId(), true, false);
+                                Broadcasting.sendFollow(mUser.getId(), true, false);
                             } else {
                                 Notifications.showSnackbar(ProfileActivity.this, result.getMessages().get(0));
                             }
@@ -180,7 +179,7 @@ public class ProfileActivity extends AppCompatActivity {
                                 mUser.setIsFollowRequestSent(false);
                                 refreshFollowUnfollowActionButtons();
                                 Notifications.showSnackbar(ProfileActivity.this, getString(R.string.you_have_followed_s_successfully, mUser.getName()));
-                                Broadcasting.sendFollow(ProfileActivity.this, mUser.getId(), false, true);
+                                Broadcasting.sendFollow(mUser.getId(), false, true);
                             } else {
                                 Notifications.showSnackbar(ProfileActivity.this, result.getMessages().get(0));
                             }
@@ -224,8 +223,6 @@ public class ProfileActivity extends AppCompatActivity {
                     if (!userId.equals(mUser.getId())) return;
                     boolean block = intent.getBooleanExtra("block", mUser.isBlocked());
                     mMenu.getItem(BLOCK).setTitle(block ? R.string.unblock : R.string.block);
-                } else if (intent.getAction().equals(Broadcasting.LOGOUT)) {
-                    finish();
                 } else if (intent.getAction().equals(Broadcasting.FOLLOW)) {
                     boolean isFollowing = intent.getBooleanExtra("follow", false);
                     boolean isFollowRequestSent = intent.getBooleanExtra("request", false);
@@ -237,7 +234,6 @@ public class ProfileActivity extends AppCompatActivity {
         };
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.BLOCK);
-        intentFilter.addAction(Broadcasting.LOGOUT);
         intentFilter.addAction(Broadcasting.FOLLOW);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }

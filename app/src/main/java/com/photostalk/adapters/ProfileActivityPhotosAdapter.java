@@ -88,10 +88,13 @@ public class ProfileActivityPhotosAdapter extends RefreshAdapter {
         viewHolder.mHashTagsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                String hashtag = MiscUtils.getWordFromCharPosition(viewHolder.mHashTagsTextView.getOffsetForPosition(motionEvent.getX(), motionEvent.getY()), viewHolder.mHashTagsTextView.getText().toString());
-                if (hashtag == null) return true;
-                if (hashtag.startsWith("#")) hashtag = hashtag.substring(1);
-                mOnActionListener.onHashtagClicked(hashtag);
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    String hashtag = MiscUtils.getWordFromCharPosition(viewHolder.mHashTagsTextView.getOffsetForPosition(motionEvent.getX(), motionEvent.getY()), viewHolder.mHashTagsTextView.getText().toString());
+                    if (hashtag == null) return true;
+                    if (hashtag.startsWith("#")) hashtag = hashtag.substring(1);
+                    mOnActionListener.onHashtagClicked(hashtag);
+                    return true;
+                }
                 return false;
             }
         });

@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import com.photostalk.R;
 import com.photostalk.adapters.RefreshAdapter;
 import com.photostalk.models.Model;
-import com.photostalk.services.Result;
+import com.photostalk.apis.Result;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Notifications;
 

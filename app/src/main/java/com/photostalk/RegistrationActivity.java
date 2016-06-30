@@ -9,8 +9,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.photostalk.services.Result;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Notifications;
 import com.photostalk.utils.Validations;

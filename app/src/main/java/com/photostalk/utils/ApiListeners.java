@@ -1,7 +1,7 @@
 package com.photostalk.utils;
 
 import com.photostalk.models.Model;
-import com.photostalk.services.Result;
+import com.photostalk.apis.Result;
 
 import java.util.ArrayList;
 

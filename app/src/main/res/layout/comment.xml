@@ -32,19 +32,39 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/no_avatar"/>
 
-            <TextView
-                android:id="@+id/full_name"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_marginStart="10dp"
-                android:ellipsize="middle"
-                android:lines="1"
-                android:singleLine="true"
-                android:text="Mohammed Nasser Commented"
-                android:textColor="@color/black"
-                android:textSize="15sp"
-                />
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/full_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="middle"
+                    android:lines="1"
+                    android:singleLine="true"
+                    android:text="Mohammed Nasser Commented"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    />
+
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="middle"
+                    android:lines="1"
+                    android:singleLine="true"
+                    android:text="on 29-Jun at 12:23 AM"
+                    android:textColor="@color/grey_dark"
+                    android:layout_marginTop="2dp"
+                    android:textSize="12sp"
+                    />
+
+            </LinearLayout>
         </LinearLayout>
 
 

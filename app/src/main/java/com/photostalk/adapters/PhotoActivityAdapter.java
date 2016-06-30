@@ -51,6 +51,7 @@ public class PhotoActivityAdapter extends RefreshAdapter {
         private FrameLayout mContainer;
         private ImageView mPhoto;
         private TextView mUserNameTextView;
+        private TextView mDateTextView;
         private FrameLayout mPlayStopButton;
         private ImageView mPlayStopIcon;
         private ProgressBar mProgressBar;
@@ -64,6 +65,7 @@ public class PhotoActivityAdapter extends RefreshAdapter {
             mContainer = ((FrameLayout) itemView.findViewById(R.id.container));
             mPhoto = ((ImageView) itemView.findViewById(R.id.photo));
             mUserNameTextView = ((TextView) itemView.findViewById(R.id.full_name));
+            mDateTextView = ((TextView) itemView.findViewById(R.id.date));
             mPlayStopButton = ((FrameLayout) itemView.findViewById(R.id.play_stop_button));
             mPlayStopIcon = ((ImageView) itemView.findViewById(R.id.button_icon));
             mProgressBar = ((ProgressBar) itemView.findViewById(R.id.progress));
@@ -137,6 +139,7 @@ public class PhotoActivityAdapter extends RefreshAdapter {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         Comment comment = mItems.get(position);
         ((ViewHolder) holder).mUserNameTextView.setText(PhotosTalkApplication.getContext().getString(R.string.s_commented, comment.getUser().getName()));
+        ((ViewHolder) holder).mDateTextView.setText("on " + comment.getCreatedAtAsString("MMM-dd") + " at " + comment.getCreatedAtAsString("hh:mm a"));
         playComment((ViewHolder) holder, position == mPlayingComments, mIsCommentLoading, position + 1 == mPlayingComments);
         changeLayout((ViewHolder) holder, position);
 

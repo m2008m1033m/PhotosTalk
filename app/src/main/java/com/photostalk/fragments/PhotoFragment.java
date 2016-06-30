@@ -16,13 +16,15 @@ import android.widget.ProgressBar;
 import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.photostalk.R;
+import com.photostalk.apis.PhotosApi;
+import com.photostalk.apis.Result;
+import com.photostalk.core.User;
 import com.photostalk.models.Model;
 import com.photostalk.models.Photo;
-import com.photostalk.services.PhotosApi;
-import com.photostalk.services.Result;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Notifications;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -36,6 +38,8 @@ public class PhotoFragment extends Fragment {
 
         void onSwipped();
     }
+
+    private static final String PHOTO_CACHE_DIR = "/photo_cache/";
 
     private View mView;
     private ProgressBar mProgressBar;
@@ -140,14 +144,21 @@ public class PhotoFragment extends Fragment {
 
     private void loadPhoto() {
         mProgressBar.setVisibility(View.VISIBLE);
+        String photoPath = User.getInstance().getSettings().getPhotoFromCache(mPhoto.getImageXlUrl());
+        if (photoPath != null) {
+            showPhoto(photoPath);
+            return;
+        }
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
                 try {
-                    String url = mPhoto.getImageOriginalUrl();
-                    String[] bits = url.split("/");
-                    String filename = bits[bits.length - 1];
-                    URL photoURL = new URL(url);
+                    // get the image url
+                    String photoUrl = mPhoto.getImageXlUrl();
+                    String photoPath = String.valueOf(System.currentTimeMillis());
+
+                    // setup the connection to download the photo
+                    URL photoURL = new URL(photoUrl);
                     HttpURLConnection connection = (HttpURLConnection) photoURL.openConnection();
                     connection.setDoInput(true);
                     connection.connect();
@@ -155,9 +166,18 @@ public class PhotoFragment extends Fragment {
                     InputStream is = connection.getInputStream();
                     Bitmap bitmap = BitmapFactory.decodeStream(is);
 
-                    FileOutputStream fileOutputStream = new FileOutputStream(getActivity().getCacheDir() + filename);
+                    // create the dir for the photos cache
+                    File dir = new File(getActivity().getCacheDir() + PHOTO_CACHE_DIR);
+                    dir.mkdir();
+
+                    // save the photo
+                    FileOutputStream fileOutputStream = new FileOutputStream(getActivity().getCacheDir() + PHOTO_CACHE_DIR + photoPath);
                     bitmap.compress(Bitmap.CompressFormat.PNG, 90, fileOutputStream);
-                    return filename;
+
+                    // add an entry to the cache
+                    User.getInstance().getSettings().putPhotoToCache(photoUrl, photoPath);
+
+                    return photoPath;
                 } catch (Exception e) {
                     e.printStackTrace();
                     return null;
@@ -165,16 +185,26 @@ public class PhotoFragment extends Fragment {
             }
 
             @Override
-            protected void onPostExecute(String filename) {
-                super.onPostExecute(filename);
-                if (filename == null) return;
-                mPhotoImageView.setImage(ImageSource.uri(getActivity().getCacheDir() + filename));
-                mPhotoImageView.setMinimumDpi(10);
+            protected void onPostExecute(String photoPath) {
+                super.onPostExecute(photoPath);
+                showPhoto(photoPath);
             }
         }.execute();
 
     }
 
+    public void showPhoto(String photoPath) {
+        /**
+         * since the can be called when from an async method,
+         * we need to check if the activity is still there ot not
+         * because user could have pressed the back button while
+         * loading.
+         */
+        if (getActivity() == null) return;
+        if (photoPath == null) return;
+        mPhotoImageView.setImage(ImageSource.uri(getActivity().getCacheDir() + PHOTO_CACHE_DIR + photoPath));
+        mPhotoImageView.setMinimumDpi(10);
+    }
 
     public int getFragmentId() {
         return mId;

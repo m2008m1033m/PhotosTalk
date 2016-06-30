@@ -8,7 +8,6 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -21,8 +20,8 @@ import com.photostalk.adapters.StoryActivityAdapter;
 import com.photostalk.core.User;
 import com.photostalk.models.Model;
 import com.photostalk.models.Story;
-import com.photostalk.services.Result;
-import com.photostalk.services.StoriesApi;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.StoriesApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
@@ -30,7 +29,7 @@ import com.photostalk.utils.Player;
 import com.squareup.picasso.Picasso;
 
 
-public class StoryActivity extends AppCompatActivity {
+public class StoryActivity extends LoggedInActivity {
     public static final String STORY_ID = "story_id";
 
     private RecyclerView mRecyclerView;
@@ -81,7 +80,7 @@ public class StoryActivity extends AppCompatActivity {
                     @Override
                     public void onExecuted(Result result) {
                         if (result.isSucceeded()) {
-                            Broadcasting.sendStoryDelete(StoryActivity.this, mStory.getId(), mStory.getUser().getId());
+                            Broadcasting.sendStoryDelete(mStory.getId(), mStory.getUser().getId());
                             finish();
                         } else
                             Notifications.showSnackbar(StoryActivity.this, result.getMessages().get(0));
@@ -144,8 +143,6 @@ public class StoryActivity extends AppCompatActivity {
                     String storyId = intent.getStringExtra("story_id");
                     if (mStory.getId().equals(storyId))
                         finish();
-                } else if (intent.getAction().equals(Broadcasting.LOGOUT)) {
-                    finish();
                 } else if (intent.getAction().equals(Broadcasting.PROFILE_UPDATED)) {
                     if (!User.getInstance().getId().equals(mStory.getUser().getId())) return;
                     Picasso.with(StoryActivity.this)
@@ -159,7 +156,6 @@ public class StoryActivity extends AppCompatActivity {
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.PHOTO_DELETE);
         intentFilter.addAction(Broadcasting.STORY_DELETE);
-        intentFilter.addAction(Broadcasting.LOGOUT);
         intentFilter.addAction(Broadcasting.PROFILE_UPDATED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }

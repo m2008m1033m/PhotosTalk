@@ -1,4 +1,4 @@
-package com.photostalk.services;
+package com.photostalk.apis;
 
 import android.support.annotation.Nullable;
 
@@ -162,5 +162,13 @@ public class PhotosApi {
             }
         }, params, "photo_hashtag");
 
+    }
+
+    public static void mute(String id, ApiListeners.OnActionExecutedListener listener) {
+        Stub.get("photo/mute", listener, null, new RequestParams("id", id), "photo_mute");
+    }
+
+    public static void unmute(String id, ApiListeners.OnActionExecutedListener listener) {
+        Stub.get("photo/un-mute", listener, null, new RequestParams("id", id), "photo_mute");
     }
 }

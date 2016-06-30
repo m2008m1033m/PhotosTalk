@@ -23,7 +23,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -46,7 +45,7 @@ import java.util.List;
 /**
  * Created by mohammed on 2/20/16.
  */
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity extends LoggedInActivity {
 
     private final static int PERMISSION_REQUEST = 0;
 
@@ -123,8 +122,7 @@ public class CameraActivity extends AppCompatActivity {
             }
         };
 
-        IntentFilter intentFilter = new IntentFilter(Broadcasting.LOGOUT);
-        intentFilter.addAction(Broadcasting.PHOTO_POSTED);
+        IntentFilter intentFilter = new IntentFilter(Broadcasting.PHOTO_POSTED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -156,9 +154,9 @@ public class CameraActivity extends AppCompatActivity {
                     if (dir.isDirectory()) {
                         for (String file : dir.list()) {
                             if (file.endsWith("jpg")) {
-                                Intent i = new Intent(CameraActivity.this, RecordTagFilterActivityNew.class);
-                                i.putExtra(RecordTagFilterActivityNew.PHOTO_PATH, dirName + File.separator + file);
-                                i.putExtra(RecordTagFilterActivityNew.IS_LIVE, true);
+                                Intent i = new Intent(CameraActivity.this, RecordTagFilterActivity.class);
+                                i.putExtra(RecordTagFilterActivity.PHOTO_PATH, dirName + File.separator + file);
+                                i.putExtra(RecordTagFilterActivity.IS_LIVE, true);
                                 startActivity(i);
                                 break;
                             }
@@ -475,9 +473,9 @@ public class CameraActivity extends AppCompatActivity {
 
     private void goToRecordFilterHashtagActivity(String photoPath) {
         if (photoPath != null) {
-            Intent i = new Intent(this, RecordTagFilterActivityNew.class);
-            i.putExtra(RecordTagFilterActivityNew.PHOTO_PATH, photoPath);
-            i.putExtra(RecordTagFilterActivityNew.IS_LIVE, true);
+            Intent i = new Intent(this, RecordTagFilterActivity.class);
+            i.putExtra(RecordTagFilterActivity.PHOTO_PATH, photoPath);
+            i.putExtra(RecordTagFilterActivity.IS_LIVE, true);
             startActivity(i);
         }
     }

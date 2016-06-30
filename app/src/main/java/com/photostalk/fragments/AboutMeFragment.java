@@ -18,8 +18,8 @@ import android.widget.TextView;
 import com.photostalk.FollowshipAndBlockagesActivity;
 import com.photostalk.R;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.Result;
-import com.photostalk.services.UserApi;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
@@ -88,7 +88,7 @@ public class AboutMeFragment extends Fragment {
                             @Override
                             public void onExecuted(Result result) {
                                 if (result.isSucceeded()) {
-                                    Broadcasting.sendFollow(getActivity(), mUser.getId(), false, false);
+                                    Broadcasting.sendFollow(mUser.getId(), false, false);
                                     mUser.setIsFollowingUser(false);
                                     refreshUi();
                                 } else
@@ -103,7 +103,7 @@ public class AboutMeFragment extends Fragment {
                                 @Override
                                 public void onExecuted(Result result) {
                                     if (result.isSucceeded()) {
-                                        Broadcasting.sendFollow(getActivity(), mUser.getId(), true, false);
+                                        Broadcasting.sendFollow(mUser.getId(), true, false);
                                         mFollowButton.setText(R.string.requested);
                                         mUser.setIsFollowRequestSent(true);
                                     } else
@@ -116,7 +116,7 @@ public class AboutMeFragment extends Fragment {
                                 @Override
                                 public void onExecuted(Result result) {
                                     if (result.isSucceeded()) {
-                                        Broadcasting.sendFollow(getActivity(), mUser.getId(), false, true);
+                                        Broadcasting.sendFollow(mUser.getId(), false, true);
                                         mUser.setIsFollowingUser(true);
                                         refreshUi();
                                     } else
@@ -131,7 +131,7 @@ public class AboutMeFragment extends Fragment {
                             @Override
                             public void onExecuted(Result result) {
                                 if (result.isSucceeded()) {
-                                    Broadcasting.sendFollow(getActivity(), mUser.getId(), false, false);
+                                    Broadcasting.sendFollow(mUser.getId(), false, false);
                                     mFollowButton.setText(R.string.follow);
                                     mUser.setIsFollowRequestSent(false);
                                 } else

@@ -7,21 +7,20 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
 
 import com.photostalk.adapters.NotificationsFragmentAdapter;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.UserApi;
 import com.photostalk.fragments.RefreshRecyclerViewFragment;
 import com.photostalk.models.Notification;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.Result;
-import com.photostalk.services.UserApi;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Broadcasting;
 import com.photostalk.utils.Notifications;
 
-public class NotificationsActivity extends AppCompatActivity {
+public class NotificationsActivity extends LoggedInActivity {
 
 
     private RefreshRecyclerViewFragment mRefreshRecyclerViewFragment;
@@ -101,7 +100,7 @@ public class NotificationsActivity extends AppCompatActivity {
             @Override
             public void onItemClicked(int position) {
                 Notification notification = ((Notification) mNotificationsAdapter.getItems().get(position));
-                if (notification.getType() == Notification.Type.COMMENT) {
+                if (notification.getType() == Notification.Type.COMMENT || notification.getType() == Notification.Type.LIKE) {
                     String photoId = notification.getPhoto().getId();
                     Intent i = new Intent(NotificationsActivity.this, PhotoActivity.class);
                     i.putExtra(PhotoActivity.PHOTO_ID, photoId);
@@ -160,13 +159,11 @@ public class NotificationsActivity extends AppCompatActivity {
                     if (mNotificationsAdapter != null)
                         mNotificationsAdapter.updateUser(userId, request, follow);
 
-                } else if (intent.getAction().equals(Broadcasting.LOGOUT))
-                    finish();
+                }
             }
         };
 
         IntentFilter intentFilter = new IntentFilter(Broadcasting.FOLLOW);
-        intentFilter.addAction(Broadcasting.LOGOUT);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
@@ -185,7 +182,7 @@ public class NotificationsActivity extends AppCompatActivity {
                     if (result.isSucceeded()) {
                         user.setIsFollowingUser(false);
                         adapter.notifyItemChanged(position);
-                        Broadcasting.sendFollow(NotificationsActivity.this, user.getId(), false, false);
+                        Broadcasting.sendFollow(user.getId(), false, false);
                     } else {
                         Notifications.showSnackbar(NotificationsActivity.this, result.getMessages().get(0));
                     }
@@ -198,7 +195,7 @@ public class NotificationsActivity extends AppCompatActivity {
                     if (result.isSucceeded()) {
                         user.setIsFollowRequestSent(true);
                         adapter.notifyItemChanged(position);
-                        Broadcasting.sendFollow(NotificationsActivity.this, user.getId(), true, false);
+                        Broadcasting.sendFollow(user.getId(), true, false);
                     } else {
                         Notifications.showSnackbar(NotificationsActivity.this, result.getMessages().get(0));
                     }
@@ -211,7 +208,7 @@ public class NotificationsActivity extends AppCompatActivity {
                     if (result.isSucceeded()) {
                         user.setIsFollowingUser(true);
                         adapter.notifyItemChanged(position);
-                        Broadcasting.sendFollow(NotificationsActivity.this, user.getId(), false, true);
+                        Broadcasting.sendFollow(user.getId(), false, true);
                     } else {
                         Notifications.showSnackbar(NotificationsActivity.this, result.getMessages().get(0));
                     }

@@ -4,17 +4,69 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.photostalk.PhotosTalkApplication;
+import com.photostalk.apis.Result;
+import com.photostalk.apis.UserApi;
 import com.photostalk.models.AccessToken;
 import com.photostalk.models.Model;
 import com.photostalk.models.UserModel;
-import com.photostalk.services.Result;
-import com.photostalk.services.UserApi;
 import com.photostalk.utils.ApiListeners;
 
 /**
  * Created by mohammed on 2/28/16.
  */
 public class User {
+
+    private final static String SHARED_PREFS_FILE_NAME = "photostalk_settings";
+
+    public static class Settings {
+        public boolean getCommentNotifications() {
+            return PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).getBoolean("comment_notification", true);
+        }
+
+        public void setCommentNotifications(boolean enable) {
+            PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).edit().putBoolean("comment_notification", enable).apply();
+        }
+
+        public void setLikeNotifications(boolean enable) {
+            PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).edit().putBoolean("like_notification", enable).apply();
+        }
+
+        public boolean getLikeNotifications() {
+            return PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).getBoolean("like_notification", true);
+        }
+
+        public void setFollowNotifications(boolean enable) {
+            PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).edit().putBoolean("follow_notification", enable).apply();
+        }
+
+        public boolean getFollowNotifications() {
+            return PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).getBoolean("follow_notification", true);
+        }
+
+        public void setFollowRequestNotifications(boolean enable) {
+            PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).edit().putBoolean("follow_request_notification", enable).apply();
+        }
+
+        public boolean getFollowRequestNotifications() {
+            return PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).getBoolean("follow_request_notification", true);
+        }
+
+        public void setAcceptFollowRequestNotifications(boolean enable) {
+            PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).edit().putBoolean("accept_follow_request_notification", enable).apply();
+        }
+
+        public boolean getAcceptFollowRequestNotifications() {
+            return PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).getBoolean("accept_follow_request_notification", true);
+        }
+
+        public void putPhotoToCache(String photoUrl, String photoPath) {
+            PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).edit().putString("photo_cache_" + photoUrl, photoPath).apply();
+        }
+
+        public String getPhotoFromCache(String photoUrl) {
+            return PhotosTalkApplication.getContext().getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE).getString("photo_cache_" + photoUrl, null);
+        }
+    }
 
     private String mAccessToken;
     private String mRefreshToken;
@@ -34,6 +86,7 @@ public class User {
     private boolean mIsLoggedIn;
 
     private Context mContext;
+    private Settings mSettings;
 
     private static User mInstance = null;
 
@@ -59,7 +112,7 @@ public class User {
          * figure out the time in which the
          * access token expires:
          */
-        mAccessTokenExpiresAt = System.currentTimeMillis() + accessToken.getExpiration() - 10000;
+        mAccessTokenExpiresAt = (System.currentTimeMillis() / 1000) + accessToken.getExpiration() - 10;
 
         mAccessToken = accessToken.getAccessToken();
         mRefreshToken = accessToken.getRefreshToken();
@@ -121,7 +174,7 @@ public class User {
     }
 
     private void checkLoggedIn() {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences("com.photostalk", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = mContext.getSharedPreferences("photostalk_settings", Context.MODE_PRIVATE);
         mIsLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
         if (mIsLoggedIn) {
             mAccessToken = sharedPreferences.getString("accessToken", "");
@@ -141,23 +194,24 @@ public class User {
     }
 
     private void fillSharedPrefs() {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences("com.photostalk", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("accessToken", mIsLoggedIn ? mAccessToken : "");
-        editor.putString("refreshToken", mIsLoggedIn ? mRefreshToken : "");
-        editor.putLong("accessTokenExpiresAt", mIsLoggedIn ? mAccessTokenExpiresAt : 0);
-        editor.putString("id", mIsLoggedIn ? mId : "");
-        editor.putString("username", mIsLoggedIn ? mUsername : "");
-        editor.putString("name", mIsLoggedIn ? mName : "");
-        editor.putString("email", mIsLoggedIn ? mEmail : "");
-        editor.putString("photo", mIsLoggedIn ? mPhoto : "");
-        editor.putString("website", mIsLoggedIn ? mWebsite : "");
-        editor.putString("bio", mIsLoggedIn ? mBio : "");
-        editor.putString("gender", mIsLoggedIn ? mGender : "");
-        editor.putString("mobile", mIsLoggedIn ? mMobile : "");
-        editor.putBoolean("private", mIsPrivate);
-        editor.putBoolean("isLoggedIn", mIsLoggedIn);
-        editor.apply();
+        SharedPreferences sharedPreferences = mContext.getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE);
+        sharedPreferences
+                .edit()
+                .putString("accessToken", mIsLoggedIn ? mAccessToken : "")
+                .putString("refreshToken", mIsLoggedIn ? mRefreshToken : "")
+                .putLong("accessTokenExpiresAt", mIsLoggedIn ? mAccessTokenExpiresAt : 0)
+                .putString("id", mIsLoggedIn ? mId : "")
+                .putString("username", mIsLoggedIn ? mUsername : "")
+                .putString("name", mIsLoggedIn ? mName : "")
+                .putString("email", mIsLoggedIn ? mEmail : "")
+                .putString("photo", mIsLoggedIn ? mPhoto : "")
+                .putString("website", mIsLoggedIn ? mWebsite : "")
+                .putString("bio", mIsLoggedIn ? mBio : "")
+                .putString("gender", mIsLoggedIn ? mGender : "")
+                .putString("mobile", mIsLoggedIn ? mMobile : "")
+                .putBoolean("private", mIsPrivate)
+                .putBoolean("isLoggedIn", mIsLoggedIn)
+                .apply();
     }
 
     public long getAccessTokenExpiresAt() {
@@ -271,4 +325,10 @@ public class User {
     public void setIsPrivate(boolean isPrivate) {
         mIsPrivate = isPrivate;
     }
+
+    public Settings getSettings() {
+        if (mSettings == null) mSettings = new Settings();
+        return mSettings;
+    }
+
 }

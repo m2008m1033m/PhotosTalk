@@ -15,12 +15,14 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.photostalk.apis.FCMApi;
 import com.photostalk.core.User;
 import com.photostalk.models.AccessToken;
 import com.photostalk.models.FacebookUser;
 import com.photostalk.models.Model;
-import com.photostalk.services.AuthApi;
-import com.photostalk.services.Result;
+import com.photostalk.apis.AuthApi;
+import com.photostalk.apis.Result;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Notifications;
 import com.photostalk.utils.Validations;
@@ -38,6 +40,7 @@ import io.fabric.sdk.android.Fabric;
 public class LoginActivity extends AppCompatActivity {
 
     public static final int DISPLAY_REGISTER_SUCCESSFUL = 0;
+    public static final String DISPLAY_MESSAGE = "display_message";
 
     private EditText mUsernameEditText;
     private EditText mPasswordEditText;
@@ -64,6 +67,14 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.login_activity);
         init();
+
+        /**
+         * check if there is a message to display:
+         */
+        String message = getIntent().getStringExtra(DISPLAY_MESSAGE);
+        if (message != null) {
+            Notifications.showSnackbar(this, message);
+        }
     }
 
     private void init() {
@@ -85,6 +96,12 @@ public class LoginActivity extends AppCompatActivity {
                             if (result.isSucceeded()) {
                                 startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                                 startActivity(new Intent(LoginActivity.this, CameraActivity.class));
+
+                                /**
+                                 * send the token Id:
+                                 */
+                                FCMApi.register(FirebaseInstanceId.getInstance().getToken(), null);
+
                                 finish();
                             } else
                                 Notifications.showSnackbar(LoginActivity.this, result.getMessages().get(0));

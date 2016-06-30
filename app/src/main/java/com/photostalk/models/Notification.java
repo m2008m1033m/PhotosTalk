@@ -20,6 +20,7 @@ public class Notification extends Model {
         REQUEST,
         COMMENT,
         REQUEST_ACCEPTANCE,
+        LIKE,
         UNKNOWN
     }
 
@@ -47,7 +48,7 @@ public class Notification extends Model {
             mUser = new UserModel();
         }
 
-        if (mType == Type.COMMENT) {
+        if (mType == Type.COMMENT || mType == Type.LIKE) {
             try {
                 mPhoto = new Photo(jsonObject.getJSONObject("photo"));
             } catch (JSONException e) {
@@ -87,6 +88,9 @@ public class Notification extends Model {
         switch (mTypeId) {
             case 1:
                 mType = Type.FOLLOW;
+                break;
+            case 2:
+                mType = Type.LIKE;
                 break;
             case 3:
                 mType = Type.REQUEST;
