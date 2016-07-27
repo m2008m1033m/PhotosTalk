@@ -51,6 +51,8 @@ public class PhotoFragment extends Fragment {
 
     private OnActionListener mOnActionListener;
 
+    public PhotoFragment() {
+    }
 
     @Nullable
     @Override

@@ -26,13 +26,9 @@ import com.photostalk.apis.Result;
 import com.photostalk.utils.ApiListeners;
 import com.photostalk.utils.Notifications;
 import com.photostalk.utils.Validations;
-import com.twitter.sdk.android.core.TwitterAuthConfig;
-import com.twitter.sdk.android.core.TwitterCore;
-import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
 import java.util.Arrays;
 
-import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by mohammed on 2/19/16.
@@ -51,7 +47,6 @@ public class LoginActivity extends AppCompatActivity {
     private TextView mRegisterTextView;
 
     private CallbackManager mCallbackManager;
-    private TwitterAuthClient mTwitterAuthClient;
     private ApiListeners.OnItemLoadedListener mLoginListener;
 
 
@@ -81,7 +76,6 @@ public class LoginActivity extends AppCompatActivity {
         initReferences();
         initLoginListener();
         initFacebook();
-        initTwitter();
         initEvents();
     }
 
@@ -155,12 +149,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void initTwitter() {
-        TwitterAuthConfig authConfig =
-                new TwitterAuthConfig("q0kRqSuNAxIUgTYVkqzQzTPl6", "kIImNPfGxdww6lpIoeeKbwItvHIKPRnuBcFaYtfDYlOeiM5Nja");
-        Fabric.with(this, new TwitterCore(authConfig));
-        mTwitterAuthClient = new TwitterAuthClient();
-    }
 
     private void initReferences() {
         mUsernameEditText = ((EditText) findViewById(R.id.username));
@@ -277,7 +265,6 @@ public class LoginActivity extends AppCompatActivity {
 
         super.onActivityResult(requestCode, resultCode, data);
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
-        mTwitterAuthClient.onActivityResult(requestCode, resultCode, data);
     }
 
 }

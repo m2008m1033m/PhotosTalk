@@ -14,7 +14,6 @@ import java.io.UnsupportedEncodingException;
 import cz.msebera.android.httpclient.entity.ByteArrayEntity;
 import cz.msebera.android.httpclient.message.BasicHeader;
 import cz.msebera.android.httpclient.protocol.HTTP;
-import retrofit.http.Header;
 
 /**
  * Created by mohammed on 2/19/16.
